@@ -1,0 +1,5 @@
+# .gitignore specifies files for git to ignore when using blanket type commands
+# ex. git add *
+
+# Ignore all object files
+*.o
