@@ -41,7 +41,20 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         Vector3 result = pLight->color();
         result *= m_kd;
         
-        L += std::max(0.0f, nDotL/falloff * pLight->wattage() / PI) * result;
+        Ray shadow_ray;
+        HitInfo hi;
+        
+        shadow_ray.o = hit.P;
+        shadow_ray.d = l;
+        
+        if (scene.trace(hi, shadow_ray, 0.001f, sqrt(falloff)))
+        {
+            // We are in shadow
+        }
+        else
+        {
+            L += std::max(0.0f, nDotL/falloff * pLight->wattage() / PI) * result;
+        }
     }
     
     // add the ambient component

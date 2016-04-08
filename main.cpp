@@ -36,8 +36,8 @@ makeSpiralScene()
     g_scene->addLight(light);
 
     // create a spiral of spheres
-    Material* mat = new Lambert(Vector3(1.0f, 0.0f, 0.0f));
-    const int maxI = 200;
+    Material* mat = new Lambert(Vector3(0.0f, 0.6f, 1.0f));;
+    const int maxI = 100;
     const float a = 0.15f;
     for (int i = 1; i < maxI; ++i)
     {
