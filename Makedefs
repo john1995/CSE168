@@ -8,9 +8,9 @@ MKDEP		= @mkdep
 ECHO		= @echo
 INCDIRS		= -I/opt/X11/include 
 #use the following LIBS line for GNU/Linux
-LIBS	 	= -lm -lX11 -lXmu -lXi -lXext -lGL -lGLU -lglut
+#LIBS	 	= -lm -lX11 -lXmu -lXi -lXext -lGL -lGLU -lglut
 #use this one instead for Mac OSX
-#LIBS		= -lm -framework GLUT --lobjc -framework OpenGL
+LIBS		= -lm -framework GLUT -lobjc -framework OpenGL
 LIBDIRS 	= -L. -L/opt/X11/lib -L/usr/lib
 LDFLAGS		= -O3 $(LIBDIRS) $(LIBS)
 CFLAGS          = $(INCDIRS) -O3 -fomit-frame-pointer \
