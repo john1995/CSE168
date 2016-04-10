@@ -21,8 +21,8 @@ public:
                            float tMin = 0.0f, float tMax = MIRO_TMAX);
     
 protected:
-    TriangleMesh* m_mesh;
-    unsigned int m_index;
+    TriangleMesh* m_mesh;   //Ptr to the mesh this triangle is a part of
+    unsigned int m_index;   //index of the triangle in the TriangleMesh
 };
 
 #endif // CSE168_TRIANGLE_H_INCLUDED
