@@ -11,6 +11,7 @@
 #include "Triangle.h"
 #include "Lambert.h"
 #include "MiroWindow.h"
+#include "Tests.hpp"
 
 void
 makeSpiralScene()
@@ -121,6 +122,10 @@ makeBunnyScene()
 int
 main(int argc, char*argv[])
 {
+    Tests tester;
+    
+    tester.testTriangleIntersection();
+    
     // create a scene
     makeSpiralScene();
 

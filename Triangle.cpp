@@ -55,7 +55,7 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
     //Compute how far away ray's origin is from the triangle's plane
     //(or even if it hits the plane at all. Won't hit if ray parallel).
     //First need to get normal of triangle
-    const Vector3& normal = Vector3::cross(b - a, c - a);
+    const Vector3& normal = (cross(b - a, c - a)).normalize();
     
     //fill in shading normal in HitInfo result
     result.N = normal;
@@ -67,17 +67,20 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
     if (denom == 0.0f)
         return false;
     
-    result.t = Vector3::dot(normal, a - r.o) / denom;
+    result.t = dot(normal, a - r.o) / denom;
+    
+    if (result.t < tMin || result.t > tMax)
+        return false;
     
     //Assign hit location to HitInfo result
     result.P = r.o + result.t * r.d;
     
     //Find smallest two components of triangle's normal vector
     int u, v;   //min indices
-    float max = max(normal.x, max(normal.y, normal.z));
+    float maxCmpnt = fmax(normal.x, fmax(normal.y, normal.z));
     
-    if (max == normal.x) { u = 1; v = 2; }
-    else if (max == normal.y) { u = 0; v = 2; }
+    if (maxCmpnt == normal.x) { u = 1; v = 2; }
+    else if (maxCmpnt == normal.y) { u = 0; v = 2; }
     else { u = 0; v = 1; }
     
     //Compute barycentric coordinates of result.P relative to this triangle.
@@ -89,10 +92,10 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
     float denominator = (b[u] - a[u]) * (c[v] - a[v]) - (b[v] - a[v]) * (c[u] - a[u]);
     
     float alpha = ((result.P[u] - a[u]) * (c[v] - a[v]) -
-                    (result.P[v] - a[v]) * (c[u] - A[u])) / denominator;
+                    (result.P[v] - a[v]) * (c[u] - a[u])) / denominator;
     
     float beta = ((b[u] - a[u]) * (result.P[v] - a[v]) -
-                  (b[v] - a[v]) - (result.P[u] - a[u])) / denominator;
+                  (b[v] - a[v]) * (result.P[u] - a[u])) / denominator;
     
     if (alpha >= 0.0f && alpha <= 1.0f && beta >= 0.0f && beta <= 1.0f && alpha + beta <= 1.0f)
         return true;
