@@ -43,8 +43,6 @@ Triangle::renderGL()
 bool
 Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
 {
-    //First get vertices of triangle
-    
     //Get the triangle by its index within the mesh it is a part of
     TriangleMesh::TupleI3 ti3 = m_mesh->vIndices()[m_index];
     
@@ -56,9 +54,6 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
     //(or even if it hits the plane at all. Won't hit if ray parallel).
     //First need to get normal of triangle
     const Vector3& normal = (cross(b - a, c - a)).normalize();
-    
-    //fill in shading normal in HitInfo result
-    result.N = normal;
     
     //Solve n dot (p - x) = 0, for p, where n = normal and x = ray
     //First check if n dot d is zero. If it is, ray is parallel to triangle
@@ -98,7 +93,26 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
                   (b[v] - a[v]) * (result.P[u] - a[u])) / denominator;
     
     if (alpha >= 0.0f && alpha <= 1.0f && beta >= 0.0f && beta <= 1.0f && alpha + beta <= 1.0f)
+    {
+        //There was a hit. Calculate Barycentric interpolation of normals so we can find
+        //normal to shade with at hit point.
+        //First, get vertex normals of vertices making up triangle.
+        TriangleMesh::TupleI3 ti3 = m_mesh->nIndices()[m_index];
+        
+        const Vector3& normalA = m_mesh->normals()[ti3.x]; //Normal of A vert. of tri.
+        const Vector3& normalB = m_mesh->normals()[ti3.y]; //Normal of B vert. of tri.
+        const Vector3& normalC = m_mesh->normals()[ti3.z]; //Normal of C vert. of tri.
+        
+        //Interpolate and assign result.N
+        //ARE ALPHA, BETA, AND GAMMA BEING MULTIPLIED BY THE RIGHT NORMALS?
+        float gamma = 1.0f - alpha - beta;
+        result.N = (alpha * normalA + beta * normalB + gamma * normalC).normalize();
+        
+        //Set material
+        result.material = this->m_material; 
+        
         return true;
+    }
     else
         return false;
 }

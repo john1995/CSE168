@@ -20,6 +20,7 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
     HitInfo tempMinHit;
     minHit.t = MIRO_TMAX;
     
+    //Loop through all objects to check if ray intersects any one of them.
     for (size_t i = 0; i < m_objects->size(); ++i)
     {
         if ((*m_objects)[i]->intersect(tempMinHit, ray, tMin, tMax))

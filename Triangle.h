@@ -3,6 +3,7 @@
 
 #include "Object.h"
 
+
 /*
     The Triangle class stores a pointer to a mesh and an index into its
     triangle array. The mesh stores all data needed by this Triangle.
@@ -23,6 +24,7 @@ public:
 protected:
     TriangleMesh* m_mesh;   //Ptr to the mesh this triangle is a part of
     unsigned int m_index;   //index of the triangle in the TriangleMesh
+
 };
 
 #endif // CSE168_TRIANGLE_H_INCLUDED

@@ -127,7 +127,7 @@ main(int argc, char*argv[])
     tester.testTriangleIntersection();
     
     // create a scene
-    makeSpiralScene();
+    makeBunnyScene();
 
     MiroWindow miro(&argc, argv);
     miro.mainLoop();
