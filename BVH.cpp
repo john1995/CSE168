@@ -26,6 +26,7 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
         if ((*m_objects)[i]->intersect(tempMinHit, ray, tMin, tMax))
         {
             hit = true;
+            //Only update hitinfo if object we hit is closer to camera
             if (tempMinHit.t < minHit.t)
                 minHit = tempMinHit;
         }

@@ -120,7 +120,7 @@ TriangleMesh::loadObj(FILE* fp, const Matrix4x4& ctm)
     }
     fseek(fp, 0, 0);
 
-
+    //max between number of vertices and number of faces
     m_normals = new Vector3[std::max(nv,nf)];
     m_vertices = new Vector3[nv];
 

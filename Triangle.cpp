@@ -6,7 +6,7 @@
 Triangle::Triangle(TriangleMesh * m, unsigned int i) :
     m_mesh(m), m_index(i)
 {
-
+    m_material = new const Material[3];
 }
 
 
@@ -106,7 +106,8 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
         //Interpolate and assign result.N
         //ARE ALPHA, BETA, AND GAMMA BEING MULTIPLIED BY THE RIGHT NORMALS?
         float gamma = 1.0f - alpha - beta;
-        result.N = (alpha * normalA + beta * normalB + gamma * normalC).normalize();
+        //result.N = (alpha * normalA + beta * normalB + gamma * normalC).normalize();
+        result.N = normal;
         
         //Set material
         result.material = this->m_material; 
