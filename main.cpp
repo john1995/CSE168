@@ -10,6 +10,7 @@
 #include "TriangleMesh.h"
 #include "Triangle.h"
 #include "Lambert.h"
+#include "Plastic.h"
 #include "MiroWindow.h"
 #include "Tests.hpp"
 
@@ -141,7 +142,11 @@ makeTeapotScene()
     light->setWattage(500);
     g_scene->addLight(light);
     
-    Material* mat = new Lambert(Vector3(1.0f));
+    //Big specular
+    Plastic* teapotMat = new Plastic();
+    
+    printf("specular exponent: %f\n",
+           teapotMat->getSpecularCmpnt()->getShinyExp());
     
     TriangleMesh * teapot = new TriangleMesh;
     teapot->load("teapot.obj");
@@ -152,10 +157,13 @@ makeTeapotScene()
         Triangle* t = new Triangle;
         t->setIndex(i);
         t->setMesh(teapot);
-        t->setMaterial(mat);
+        t->setMaterial(teapotMat);
         g_scene->addObject(t);
     }
     
+    //Create material for floor
+    Material* floorMat = new Lambert(Vector3(1.0f));
+
     // create the floor triangle
     TriangleMesh * floor = new TriangleMesh;
     floor->createSingleTriangle();
@@ -169,7 +177,7 @@ makeTeapotScene()
     Triangle* t = new Triangle;
     t->setIndex(0);
     t->setMesh(floor);
-    t->setMaterial(mat);
+    t->setMaterial(floorMat);
     g_scene->addObject(t);
     
     // let objects do pre-calculations if needed
