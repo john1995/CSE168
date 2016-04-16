@@ -53,7 +53,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         }
         else
         {
-            L += std::max(0.0f, nDotL/falloff * pLight->wattage() / PI) * result;
+            L += std::max(0.0f, (nDotL * pLight->wattage()) / (4.0f * PI * falloff)) * result;
         }
     }
     
