@@ -138,7 +138,7 @@ makeTeapotScene()
     // create and place a point light source
     PointLight * light = new PointLight;
     light->setPosition(Vector3(-3, 15, 3));
-    light->setColor(Vector3(1, 1, 1));
+    light->setColor(Vector3(1.0f, 1.0f, 1.0f));
     light->setWattage(500);
     g_scene->addLight(light);
     

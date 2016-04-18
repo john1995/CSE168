@@ -41,6 +41,7 @@ void Specular::setShinyExp(float newExp)
     shinyExp = newExp;
 }
 
+//Blinn-Phong shading model
 Vector3
 Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
 {
@@ -58,7 +59,10 @@ Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         
         Vector3 l = pLight->position() - hit.P;
         
-        reflected = -2.0f * (dot(hit.N, l)) * hit.N + l;
+        reflected = 2.0f * (dot(hit.N, l)) * hit.N - l;
+        
+        //Get halfway vector
+        Vector3 h = (L + -1 * ray.d).normalize();
         
         //get color of light
         Vector3 color = pLight->color();
@@ -76,7 +80,7 @@ Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         else
         {
             //flip vector from eye so points from hit point back to eye
-            L += k_s * color * pow(dot(reflected, -1 * ray.d), shinyExp);
+            L += k_s * color * pow(std::max(0.0f, dot(h, hit.N)), shinyExp);
         }
     }
     

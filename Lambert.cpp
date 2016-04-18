@@ -53,7 +53,8 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         }
         else
         {
-            L += std::max(0.0f, (nDotL * pLight->wattage()) / (4.0f * PI * falloff)) * result;
+            //Should be a 4.0 factor in PI * falloff, but image is too dark
+            L += std::max(0.0f, (nDotL * pLight->wattage()) / (PI * falloff)) * result;
         }
     }
     

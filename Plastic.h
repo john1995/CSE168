@@ -22,7 +22,7 @@ public:
     //and a diffuse component encapsulated in a Lambert material.
     //Very high "shiny" exponent to make it look more like plastic
     Plastic(Lambert* diffuse = new Lambert(),
-            Specular* specular = new Specular(Vector3(1.0f), 2.0f));
+            Specular* specular = new Specular(Vector3(0.5f), 256.0f));
     
     ~Plastic();
     
