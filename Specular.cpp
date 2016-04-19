@@ -72,7 +72,14 @@ Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         
         shadow_ray.o = hit.P;
         shadow_ray.d = l;
-        
+
+	//n1/n2  refract from air to glass
+	float M = 1.0f / 2.47f;
+
+	//Calculate Refraction
+	Vector3 wt = (- M) * (l-(dot(l,hit.N)*hit.N)) - (sqrt(1- pow((M),2) * (1- pow(dot(l,hit.N),2))))*hit.N;
+	//std::cout<<"M = "<<M<< " hit.N = "<<hit.N<<std::endl;
+
         if (scene.trace(hi, shadow_ray, 0.001f, sqrt(l.length2())))
         {
             // We are in shadow
@@ -80,8 +87,20 @@ Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         else
         {
             //flip vector from eye so points from hit point back to eye
-            L += k_s * color * pow(std::max(0.0f, dot(h, hit.N)), shinyExp);
-        }
+            L += k_s * color * pow(std::max(0.0f, dot(h, hit.N)), 4*shinyExp);
+	    
+
+	    //Specular Highlights
+	    //This is separate from the reflection calculation because it
+            //needs to be dependent on just the shinyExp
+	    //https://en.wikipedia.org/wiki/Specular_highlight
+	    L += pow(std::max(0.0f, dot(h, hit.N)), shinyExp);
+
+	    //Specular Refraction
+	    L += k_s * color * pow(std::max(0.0f, dot(wt, -ray.d)),4* shinyExp);
+	    //std::cout<<"Final Refraction vector = "<<(k_s * color * pow(std::max(0.0f, dot(wt, -ray.d)), shinyExp))<<std::endl;
+	}
+
     }
     
     return L;

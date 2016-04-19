@@ -162,7 +162,7 @@ makeTeapotScene()
     }
     
     //Create material for floor
-    Material* floorMat = new Lambert(Vector3(1.0f));
+    Material* floorMat = new Lambert(Vector3(1.0f,0.0f,0.0f));
 
     // create the floor triangle
     TriangleMesh * floor = new TriangleMesh;
