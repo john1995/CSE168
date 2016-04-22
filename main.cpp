@@ -131,7 +131,7 @@ makeTeapotScene()
     // set up the camera
     g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
     g_camera->setEye(Vector3(-2, 3, 5));
-    g_camera->setLookAt(Vector3(-.5, 1, 0));
+    g_camera->setLookAt(Vector3(0, 0, 0));
     g_camera->setUp(Vector3(0, 1, 0));
     g_camera->setFOV(45);
     

@@ -59,8 +59,26 @@ Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         
         Vector3 l = pLight->position() - hit.P;
         
-        reflected = 2.0f * (dot(hit.N, l)) * hit.N - l;
-        
+        reflected = ray.d - 2.0f * (dot(hit.N, ray.d)) * hit.N;
+
+	//trace from reflected vector now
+        Ray re;
+	re.o = hit.P;
+ 	re.d = reflected;
+
+	if (hit.numBounces > HitInfo::MAX_BOUNCES)
+	{
+	    if (scene.trace(hit, re))
+	    {
+		hit.numBounces++;
+	        L += shade(re, bounces, scene);
+	    }
+	}
+	else
+	{
+	    hit.numBounces = 0;
+	}
+
         //Get halfway vector
         Vector3 h = (L + -1 * ray.d).normalize();
         
@@ -74,7 +92,7 @@ Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         shadow_ray.d = l;
 
 	//n1/n2  refract from air to glass
-	float M = 1.0f / 2.47f;
+	float M = 1.0f / 1.5f;
 
 	//Calculate Refraction
 	Vector3 wt = (- M) * (l-(dot(l,hit.N)*hit.N)) - (sqrt(1- pow((M),2) * (1- pow(dot(l,hit.N),2))))*hit.N;
@@ -87,17 +105,17 @@ Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         else
         {
             //flip vector from eye so points from hit point back to eye
-            L += k_s * color * pow(std::max(0.0f, dot(h, hit.N)), 4*shinyExp);
-	    
+            //L += k_s * color * pow(std::max(0.0f, dot(h, hit.N)), shinyExp);
+	     L += k_s * color * pow(std::max(0.0f, dot(reflected, -ray.d)), shinyExp);
 
 	    //Specular Highlights
 	    //This is separate from the reflection calculation because it
             //needs to be dependent on just the shinyExp
 	    //https://en.wikipedia.org/wiki/Specular_highlight
-	    L += pow(std::max(0.0f, dot(h, hit.N)), shinyExp);
+	    //L += pow(std::max(0.0f, dot(h, hit.N)), shinyExp);
 
 	    //Specular Refraction
-	    L += k_s * color * pow(std::max(0.0f, dot(wt, -ray.d)),4* shinyExp);
+	    L += k_s * color * pow(std::max(0.0f, dot(wt, -ray.d)), shinyExp);
 	    //std::cout<<"Final Refraction vector = "<<(k_s * color * pow(std::max(0.0f, dot(wt, -ray.d)), shinyExp))<<std::endl;
 	}
 
