@@ -18,7 +18,7 @@ public:
 
     virtual void preCalc() {}
     
-    virtual Vector3 shade(const Ray& ray, const HitInfo& hit,
+    virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
 protected:
     Vector3 m_kd;

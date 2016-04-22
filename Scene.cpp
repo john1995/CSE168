@@ -52,6 +52,7 @@ Scene::raytraceImage(Camera *cam, Image *img)
         for (int i = 0; i < img->width(); ++i)
         {
             ray = cam->eyeRay(i, j, img->width(), img->height());
+            ray.numBounces = 0;
             if (trace(hitInfo, ray))
             {
                 shadeResult = hitInfo.material->shade(ray, hitInfo, *this);
@@ -64,7 +65,7 @@ Scene::raytraceImage(Camera *cam, Image *img)
         fflush(stdout);
     }
     
-    printf("Rendering Progress: 100.000%\n");
+    printf("Rendering Progress: 100.000 percent\n");
     debug("done Raytracing!\n");
 }
 

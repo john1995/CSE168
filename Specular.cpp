@@ -43,10 +43,13 @@ void Specular::setShinyExp(float newExp)
 
 //Blinn-Phong shading model
 Vector3
-Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
+Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
 {
     Vector3 reflected = Vector3(0.0f, 0.0f, 0.0f);
     Vector3 L = Vector3(0.0f, 0.0f, 0.0f);
+    
+    //scale down intensity of light in proportion to num of ray bounces
+    Vector3 attenuation = k_s * .5 * ray.numBounces;
     
     const Lights *lightlist = scene.lights();
     
@@ -61,42 +64,54 @@ Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         
         reflected = ray.d - 2.0f * (dot(hit.N, ray.d)) * hit.N;
 
-	//trace from reflected vector now
-        Ray re;
-	re.o = hit.P;
- 	re.d = reflected;
-
-	if (hit.numBounces > HitInfo::MAX_BOUNCES)
-	{
-	    if (scene.trace(hit, re))
-	    {
-		hit.numBounces++;
-	        L += shade(re, bounces, scene);
-	    }
-	}
-	else
-	{
-	    hit.numBounces = 0;
-	}
+        if (ray.numBounces < Ray::MAX_BOUNCES)
+        {
+            //trace from reflected vector now
+            Ray reflect(ray.numBounces + 1);
+            reflect.o = hit.P;
+            reflect.d = reflected;
+            HitInfo hitReflect;
+        
+            if (scene.trace(hitReflect, reflect, 0.008f))
+            {
+                //printf("Bounced reflected ray hit something!\n");
+                L += hitReflect.material->shade(reflect, hitReflect, scene);
+            }
+        }
 
         //Get halfway vector
         Vector3 h = (L + -1 * ray.d).normalize();
+
+        //n1/n2  refract from air to glass
+        float M = 1.0f / 1.50f;
+
+        //Calculate Refraction
+        /*Vector3 wt = -M * (l-(dot(l,hit.N)*hit.N)) -
+            (sqrt(1- pow(M, 2) * (1- pow(dot(l,hit.N),2))))*hit.N;
+            
+        //trace from refraction
+        if (ray.numBounces < Ray::MAX_BOUNCES)
+        {
+            //trace from reflected vector now
+            Ray refract(ray.numBounces + 1);
+            refract.o = hit.P;
+            refract.d = wt;
+            HitInfo hitRefract;
+                
+            if (scene.trace(hitRefract, refract, 0.01f))
+            {
+                printf("Bounced refracted ray hit something!\n");
+                L += hitRefract.material->shade(refract, hitRefract, scene);
+            }
+        }*/
         
-        //get color of light
-        Vector3 color = pLight->color();
-        
-        Ray shadow_ray;
+        Ray shadow_ray(0);
         HitInfo hi;
         
         shadow_ray.o = hit.P;
         shadow_ray.d = l;
-
-	//n1/n2  refract from air to glass
-	float M = 1.0f / 1.5f;
-
-	//Calculate Refraction
-	Vector3 wt = (- M) * (l-(dot(l,hit.N)*hit.N)) - (sqrt(1- pow((M),2) * (1- pow(dot(l,hit.N),2))))*hit.N;
-	//std::cout<<"M = "<<M<< " hit.N = "<<hit.N<<std::endl;
+        
+        //std::cout<<"M = "<<M<< " hit.N = "<<hit.N<<std::endl;
 
         if (scene.trace(hi, shadow_ray, 0.001f, sqrt(l.length2())))
         {
@@ -104,21 +119,24 @@ Specular::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         }
         else
         {
+            //get color of light
+            Vector3 color = pLight->color();
+            
             //flip vector from eye so points from hit point back to eye
             //L += k_s * color * pow(std::max(0.0f, dot(h, hit.N)), shinyExp);
-	     L += k_s * color * pow(std::max(0.0f, dot(reflected, -ray.d)), shinyExp);
-
-	    //Specular Highlights
-	    //This is separate from the reflection calculation because it
+            L += attenuation * color * pow(std::max(0.0f, dot(reflected, -ray.d)), shinyExp);
+            
+            //Specular Highlights
+            //This is separate from the reflection calculation because it
             //needs to be dependent on just the shinyExp
-	    //https://en.wikipedia.org/wiki/Specular_highlight
-	    //L += pow(std::max(0.0f, dot(h, hit.N)), shinyExp);
+            //https://en.wikipedia.org/wiki/Specular_highlight
+            //L += pow(std::max(0.0f, dot(h, hit.N)), shinyExp);
 
-	    //Specular Refraction
-	    L += k_s * color * pow(std::max(0.0f, dot(wt, -ray.d)), shinyExp);
-	    //std::cout<<"Final Refraction vector = "<<(k_s * color * pow(std::max(0.0f, dot(wt, -ray.d)), shinyExp))<<std::endl;
-	}
-
+            //Specular Refraction
+            //L += attenuation * color * pow(std::max(0.0f, dot(wt, -ray.d)), shinyExp);
+            //std::cout<<"Final Refraction vector = "<<(k_s * color * pow(std::max(0.0f,
+            //dot(wt,ray.d)), shinyExp))<<std::endl;
+        }
     }
     
     return L;

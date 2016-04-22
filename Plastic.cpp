@@ -40,7 +40,7 @@ void Plastic::setSpecularCmpnt(Specular* spec)
 }
 
 Vector3
-Plastic::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
+Plastic::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
 {
     return diffuseCmpnt->shade(ray, hit, scene) + specularCmpnt->shade(ray, hit, scene);
 }

@@ -8,13 +8,15 @@ class Ray
 public:
     Vector3 o,      //!< Origin of ray
             d;      //!< Direction of ray
+    static const int MAX_BOUNCES =  1;
+    int numBounces;
 
-    Ray() : o(), d(Vector3(0.0f,0.0f,1.0f))
+    Ray(int bounces = 0) : o(), d(Vector3(0.0f,0.0f,1.0f)), numBounces(bounces)
     {
         // empty
     }
 
-    Ray(const Vector3& o, const Vector3& d) : o(o), d(d)
+    Ray(const Vector3& o, const Vector3& d) : o(o), d(d), numBounces(0)
     {
         // empty
     }
@@ -29,17 +31,15 @@ public:
 class HitInfo
 {
 public:
-    static const int MAX_BOUNCES =  2;
     float t;                            //!< The hit distance
     Vector3 P;                          //!< The hit point
     Vector3 N;                          //!< Shading normal vector
     const Material* material;           //!< Material of the intersected object
-    int numBounces;
     //! Default constructor.
     explicit HitInfo(float t = 0.0f,
                      const Vector3& P = Vector3(),
-                     const Vector3& N = Vector3(0.0f, 1.0f, 0.0f), int bounces = 0) :
-        t(t), P(P), N(N), material (0), numBounces(0)
+                     const Vector3& N = Vector3(0.0f, 1.0f, 0.0f)) :
+        t(t), P(P), N(N), material (0)
     {
         // empty
     }

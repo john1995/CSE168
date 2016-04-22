@@ -12,7 +12,9 @@ public:
 
     virtual void preCalc() {}
     
-    virtual Vector3 shade(const Ray& ray, const HitInfo& hit,
+    /* NOTE: param ray used to be const, but was made changeable
+     * so the number of bounces of a ray could be modified */
+    virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
 };
 

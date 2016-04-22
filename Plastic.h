@@ -22,7 +22,7 @@ public:
     //and a diffuse component encapsulated in a Lambert material.
     //Very high "shiny" exponent to make it look more like plastic
     Plastic(Lambert* diffuse = new Lambert(),
-            Specular* specular = new Specular(Vector3(0.5f), 256.0f));
+            Specular* specular = new Specular(Vector3(0.5f), 2.0f));
     
     ~Plastic();
     
@@ -31,7 +31,7 @@ public:
     void setDiffuseCmpnt(Lambert*);
     void setSpecularCmpnt(Specular*);
     
-    virtual Vector3 shade(const Ray& ray, const HitInfo& hit,
+    virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
     
 protected:

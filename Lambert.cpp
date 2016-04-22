@@ -14,7 +14,7 @@ Lambert::~Lambert()
 }
 
 Vector3
-Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
+Lambert::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
 {
     Vector3 L = Vector3(0.0f, 0.0f, 0.0f);
     
@@ -41,7 +41,7 @@ Lambert::shade(const Ray& ray, const HitInfo& hit, const Scene& scene) const
         Vector3 result = pLight->color();
         result *= m_kd;
         
-        Ray shadow_ray;
+        Ray shadow_ray(0);
         HitInfo hi;
         
         shadow_ray.o = hit.P;
