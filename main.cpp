@@ -11,6 +11,7 @@
 #include "Triangle.h"
 #include "Lambert.h"
 #include "Plastic.h"
+#include "StoneMat.hpp"
 #include "MiroWindow.h"
 #include "Tests.hpp"
 
@@ -162,7 +163,7 @@ makeTeapotScene()
     }
     
     //Create material for floor
-    Plastic* floorMat = new Plastic(new Lambert(Vector3(1.0f,0.0f,0.0f)));
+    StoneMat* floorMat = new StoneMat();
 
     // create the floor triangle
     TriangleMesh * floor = new TriangleMesh;

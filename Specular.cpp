@@ -87,7 +87,7 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         //n1/n2  refract from air to glass
         float M = 1.0f / 2.50f;
 	
-	//Check to see if refraction is comming into material or out of it 
+	//Check to see if refraction is coming into material or out of it
 	if(dot(hit.N,l) > 0){
             M = 1.0f / 2.50f;
 	}
