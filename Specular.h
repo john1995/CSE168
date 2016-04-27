@@ -27,6 +27,7 @@ public:
     void setSpecScaleFactor(Vector3);
     float getShinyExp();
     void setShinyExp(float);
+    void setBackgroundColor(const Vector3);
     
     virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
@@ -34,6 +35,8 @@ public:
 protected:
     Vector3 k_s;            //specular scale factor
     float shinyExp;         //shininess exponent
+    
+    Vector3 bgColor;        //background color needed for refraction
 };
 
 #endif /* Specular_hpp */

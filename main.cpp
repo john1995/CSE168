@@ -146,6 +146,8 @@ makeTeapotScene()
     //Big specular
     Plastic* teapotMat = new Plastic();
     
+    teapotMat->getSpecularCmpnt()->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
+    
     printf("specular exponent: %f\n",
            teapotMat->getSpecularCmpnt()->getShinyExp());
     

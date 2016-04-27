@@ -41,6 +41,11 @@ void Specular::setShinyExp(float newExp)
     shinyExp = newExp;
 }
 
+void Specular::setBackgroundColor(const Vector3 color)
+{
+    bgColor.set(color);
+}
+
 //Blinn-Phong shading model
 Vector3
 Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
