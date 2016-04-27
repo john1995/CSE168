@@ -46,6 +46,11 @@ void Specular::setBackgroundColor(const Vector3 color)
     bgColor.set(color);
 }
 
+void Specular::setMaxBounces(const int max)
+{
+    maxBounces = max;
+}
+
 //Blinn-Phong shading model
 Vector3
 Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
@@ -69,7 +74,7 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         
         reflected = ray.d - 2.0f * (dot(hit.N, ray.d)) * hit.N;
 
-        if (ray.numBounces < Ray::MAX_BOUNCES)
+        if (ray.numBounces < maxBounces)
         {
             //trace from reflected vector now
             Ray reflect(ray.numBounces + 1);
@@ -79,9 +84,14 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         
             if (scene.trace(hitReflect, reflect, 0.008f))
             {
-		Vector3 color = pLight->color();
+                //get color from object hit
                 //printf("Bounced reflected ray hit something!\n");
                 L += attenuation * hitReflect.material->shade(reflect, hitReflect, scene);
+            }
+            else
+            {
+                //get color from background
+                L += bgColor;
             }
         }
 
@@ -96,15 +106,15 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             M = 1.0f / 1.31f;
 	}
 	else{
-	    M = 2.50f;
+	    M = 1.31f;
 	}
 	
-        //Calculate Refraction
+        //Calculate Refraction Ray
         /*Vector3 wt = -M * (l-(dot(l,hit.N)*hit.N)) -
             (sqrt(1- pow(M, 2) * (1- pow(dot(l,hit.N),2))))*hit.N;
             
         //trace from refraction
-        if (ray.numBounces < Ray::MAX_BOUNCES)
+        if (ray.numBounces < maxBounces)
         {
             //trace from reflected vector now
             Ray refract(ray.numBounces + 1);
@@ -115,12 +125,16 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             if (scene.trace(hitRefract, refract, 0.01f))
             {
                 Vector3 color = pLight->color();
-         //       printf("Bounced refracted ray hit something!\n");
+                printf("Bounced refracted ray hit something!\n");
                 L += hitRefract.material->shade(refract, hitRefract, scene);
-                L += attenuation * color * pow(std::max(0.0f, dot(wt, -ray.d)), shinyExp);
             }
-        }
-        */
+            else
+            {
+                printf("Bounced refracted ray didn't hit anything\n");
+                L += bgColor;
+            }
+        }*/
+        
         Ray shadow_ray(0);
         HitInfo hi;
         
@@ -146,7 +160,9 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             //This is separate from the reflection calculation because it
             //needs to be dependent on just the shinyExp
             //https://en.wikipedia.org/wiki/Specular_highlight
-            L += pow(std::max(0.0f, dot(h, hit.N)), 50* shinyExp);
+            
+            //Specular calculation for ABSORBED light
+            L += attenuation * pow(std::max(0.0f, dot(h, hit.N)), 50* shinyExp);
 
 	    //check entering or exiting and change n1/n2 n2/n1
            //dot product ray.dot.normal  

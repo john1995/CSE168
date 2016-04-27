@@ -11,7 +11,8 @@
 Plastic::Plastic(Lambert* diffuse, Specular* specular) :
                  diffuseCmpnt(diffuse), specularCmpnt(specular)
 {
-    
+    //set maximum number of bounces specular cmpnt can have
+    specularCmpnt->setMaxBounces(MAX_BOUNCES);
 }
 
 Plastic::~Plastic()

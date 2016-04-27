@@ -11,6 +11,7 @@
 #include "Triangle.h"
 #include "Lambert.h"
 #include "Plastic.h"
+#include "Mirror.hpp"
 #include "StoneMat.hpp"
 #include "MiroWindow.h"
 #include "Tests.hpp"
@@ -130,7 +131,7 @@ makeTeapotScene()
     g_image->resize(128, 128);
     
     // set up the camera
-    g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
+    g_camera->setBGColor(Vector3(0.0f, 0.2f, 0.6f));
     g_camera->setEye(Vector3(2, 3, 6));
     g_camera->setLookAt(Vector3(0, 0, 0));
     g_camera->setUp(Vector3(0, 1, 0));
@@ -143,28 +144,46 @@ makeTeapotScene()
     light->setWattage(500);
     g_scene->addLight(light);
     
-    //Big specular
-    Plastic* teapotMat = new Plastic();
+    Plastic* teapotMat1 = new Plastic();
     
-    teapotMat->getSpecularCmpnt()->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
+    teapotMat1->getSpecularCmpnt()->setBackgroundColor(Vector3(0.0f, 0.2f, 0.6f));
     
     printf("specular exponent: %f\n",
-           teapotMat->getSpecularCmpnt()->getShinyExp());
+           teapotMat1->getSpecularCmpnt()->getShinyExp());
     
-    TriangleMesh * teapot = new TriangleMesh;
-    teapot->load("teapot.obj");
+    TriangleMesh * teapot1 = new TriangleMesh;
+    teapot1->load("teapot.obj");
     
     // create all the triangles in the bunny mesh and add to the scene
-    for (int i = 0; i < teapot->numTris(); ++i)
+    for (int i = 0; i < teapot1->numTris(); ++i)
     {
         Triangle* t = new Triangle;
         t->setIndex(i);
-        t->setMesh(teapot);
-        t->setMaterial(teapotMat);
+        t->setMesh(teapot1);
+        t->setMaterial(teapotMat1);
         g_scene->addObject(t);
     }
     
-    teapot->translate(Vector3(1.0f, 0.0f, 0.0f));
+    teapot1->translate(Vector3(2.0f, 0.0f, -2.0f));
+    
+    Mirror* teapotMat2 = new Mirror();
+    
+    teapotMat2->getSpecularCmpnt()->setBackgroundColor(Vector3(0.0f, 0.2f, 0.6f));
+    
+    TriangleMesh * teapot2 = new TriangleMesh;
+    teapot2->load("teapot.obj");
+    
+    // create all the triangles in the bunny mesh and add to the scene
+    for (int i = 0; i < teapot2->numTris(); ++i)
+    {
+        Triangle* t = new Triangle;
+        t->setIndex(i);
+        t->setMesh(teapot2);
+        t->setMaterial(teapotMat2);
+        g_scene->addObject(t);
+    }
+    
+    teapot2->translate(Vector3(-2.0f, 0.0f, 2.0f));
     
     //Create material for floor
     StoneMat* floorMat = new StoneMat();

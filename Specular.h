@@ -28,6 +28,7 @@ public:
     float getShinyExp();
     void setShinyExp(float);
     void setBackgroundColor(const Vector3);
+    void setMaxBounces(const int);
     
     virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
@@ -37,6 +38,7 @@ protected:
     float shinyExp;         //shininess exponent
     
     Vector3 bgColor;        //background color needed for refraction
+    int maxBounces;
 };
 
 #endif /* Specular_hpp */

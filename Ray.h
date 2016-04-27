@@ -8,7 +8,6 @@ class Ray
 public:
     Vector3 o,      //!< Origin of ray
             d;      //!< Direction of ray
-    static const int MAX_BOUNCES =  1;
     int numBounces;
 
     Ray(int bounces = 0) : o(), d(Vector3(0.0f,0.0f,1.0f)), numBounces(bounces)
