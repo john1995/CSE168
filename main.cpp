@@ -162,6 +162,8 @@ makeTeapotScene()
         g_scene->addObject(t);
     }
     
+    teapot->translate(Vector3(1.0f, 0.0f, 0.0f));
+    
     //Create material for floor
     StoneMat* floorMat = new StoneMat();
 

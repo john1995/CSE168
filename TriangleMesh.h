@@ -2,6 +2,7 @@
 #define CSE168_TRIANGLE_MESH_H_INCLUDED
 
 #include "Matrix4x4.h"
+#include "math.h"
 
 class TriangleMesh
 {
@@ -30,6 +31,11 @@ public:
     {
         float x, y;
     };
+    
+    void translate(const Vector3);
+    void rotateX(float);
+    void rotateY(float);
+    void rotateZ(float);
 
     Vector3* vertices()     {return m_vertices;}
     Vector3* normals()      {return m_normals;}
@@ -48,6 +54,7 @@ protected:
     TupleI3* m_vertexIndices;
     TupleI3* m_texCoordIndices;
     unsigned int m_numTris;
+    unsigned int m_numVerts;
 };
 
 
