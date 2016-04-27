@@ -49,7 +49,7 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
     Vector3 L = Vector3(0.0f, 0.0f, 0.0f);
     
     //scale down intensity of light in proportion to num of ray bounces
-    Vector3 attenuation = k_s * .5 * ray.numBounces;
+    Vector3 attenuation = k_s * ( 1 / (ray.numBounces+1));
     
     const Lights *lightlist = scene.lights();
     
@@ -76,8 +76,7 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             {
 		Vector3 color = pLight->color();
                 //printf("Bounced reflected ray hit something!\n");
-                L += .5 * hitReflect.material->shade(reflect, hitReflect, scene);
-                L += attenuation * color * pow(std::max(0.0f, dot(reflected, -ray.d)), shinyExp);
+                L += attenuation * hitReflect.material->shade(reflect, hitReflect, scene);
             }
         }
 
@@ -85,11 +84,11 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         Vector3 h = (L + -1 * ray.d).normalize();
 
         //n1/n2  refract from air to glass
-        float M = 1.0f / 2.50f;
+        float M = 1.0f / 1.31f;
 	
 	//Check to see if refraction is coming into material or out of it
 	if(dot(hit.N,l) > 0){
-            M = 1.0f / 2.50f;
+            M = 1.0f / 1.31f;
 	}
 	else{
 	    M = 2.50f;
@@ -110,11 +109,11 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
                 
             if (scene.trace(hitRefract, refract, 0.01f))
             {
-		Vector3 color = pLight->color();
+                Vector3 color = pLight->color();
          //       printf("Bounced refracted ray hit something!\n");
                 L += hitRefract.material->shade(refract, hitRefract, scene);
                 L += attenuation * color * pow(std::max(0.0f, dot(wt, -ray.d)), shinyExp);
-	    }
+            }
         }
         */
         Ray shadow_ray(0);
