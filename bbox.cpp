@@ -12,6 +12,9 @@ bbox::bbox(Vector3 max, Vector3 min)
     minC = min;
 }
 
+bbox::bbox(Vector3 maxCorner, Vector3 minCorner, unsigned int numObjs, unsigned int index) :
+maxC(maxCorner), minC(minCorner), numObjects(numObjs), index(index) {}
+
 bbox::~bbox()
 {
 }
@@ -44,7 +47,13 @@ bool bbox::intersect(Ray r)
     float t_max = std::min(tmax.x, std::max(tmax.y, tmax.z));
     
     if (t_min < t_max)
+    {
+        //Distance to closest plane we hit.
+        distFromRay = std::min(tmin.x, std::min(tmin.y, tmin.z));
         return true;
+    }
     else
+    {
         return false;
+    }
 }

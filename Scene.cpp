@@ -72,5 +72,5 @@ Scene::raytraceImage(Camera *cam, Image *img)
 bool
 Scene::trace(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
 {
-    return m_bvh.intersect(global, minHit, ray, tMin, tMax);
+    return m_bvh.intersect(minHit, ray, tMin, tMax);
 }

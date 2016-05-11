@@ -16,6 +16,8 @@ public:
 
     void setIndex(unsigned int i) {m_index = i;}
     void setMesh(TriangleMesh* m) {m_mesh = m;}
+    TriangleMesh* getMesh()   { return m_mesh; }
+    unsigned int getIndex()     { return m_index; }
     
     virtual void renderGL();
     virtual bool intersect(HitInfo& result, const Ray& ray,
