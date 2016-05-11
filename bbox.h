@@ -16,7 +16,7 @@ public:
     Vector3   minC;
     Vector3   maxC;
     Object *obj;
-    bool intersect(Ray, HitInfo& h);
+    bool intersect(Ray);
     std::vector<bbox*> children;
     bool isLeaf;
 

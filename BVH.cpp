@@ -34,10 +34,6 @@ BVH::intersect(bbox *box, HitInfo& minHit, const Ray& ray, float tMin, float tMa
     
     return hit;*/
     
-    HitInfo childHit;
-    float minDistance = 1000000000000.0f;   //Some impossibly large number.
-    bbox* closestBox = nullptr;
-    
     if (box->isLeaf)
     {
         //Check if ray hits any of the triangles in the leaf
@@ -49,27 +45,17 @@ BVH::intersect(bbox *box, HitInfo& minHit, const Ray& ray, float tMin, float tMa
         for (std::vector<bbox*>::iterator it = box->children.begin();
              it != box->children.end(); it++)
         {
-            if ((*it)->intersect(ray, childHit))
+            if ((*it)->intersect(ray))
             {
-                //Save this
-                if (childHit.t < minDistance)
-                {
-                    minDistance = childHit.t;
-                    closestBox = *it;
-                }
+                //Go down the hierarchy
+                return intersect(*it, minHit, ray);
             }
         }
         
-        if (closestBox != nullptr)
-        {
-            //Recursively call intersect on next lowest box
-            return intersect(closestBox, minHit, ray);
-        }
-        else
-        {
-            //No intersections with child boxes.
-            return false;
-        }
+        //If reach here, it means we went through all children
+        //and didn't find a single intersection.
+        return false;
+        
     }
         
 }

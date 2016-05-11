@@ -16,7 +16,7 @@ bbox::~bbox()
 {
 }
 
-bool bbox::intersect(Ray r, HitInfo& h)
+bool bbox::intersect(Ray r)
 {
     Vector3 t1;
     Vector3 t2;
@@ -44,11 +44,7 @@ bool bbox::intersect(Ray r, HitInfo& h)
     float t_max = std::min(tmax.x, std::max(tmax.y, tmax.z));
     
     if (t_min < t_max)
-    {
-        h.t = std::min(tmin.x, std::min(tmin.y, tmin.z));
         return true;
-    }
     else
         return false;
-    
 }
