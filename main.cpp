@@ -15,6 +15,7 @@
 #include "StoneMat.hpp"
 #include "MiroWindow.h"
 #include "Tests.hpp"
+#include "Glass.hpp"
 
 void
 makeSpiralScene()
@@ -184,6 +185,25 @@ makeTeapotScene()
     }
     
     teapot2->translate(Vector3(-2.0f, 0.0f, 2.0f));
+    
+    Glass* teapotMat3 = new Glass(0.0f, 0.0f, 1.0f);
+    
+    teapotMat3->setBackgroundColor(Vector3(0.0f, 0.2f, 0.6f));
+    
+    TriangleMesh * teapot3 = new TriangleMesh;
+    teapot3->load("teapot.obj");
+    
+    // create all the triangles in the bunny mesh and add to the scene
+    for (int i = 0; i < teapot3->numTris(); ++i)
+    {
+        Triangle* t = new Triangle;
+        t->setIndex(i);
+        t->setMesh(teapot3);
+        t->setMaterial(teapotMat3);
+        g_scene->addObject(t);
+    }
+    
+    teapot3->translate(Vector3(0.0f, 0.0f, 3.0f));
     
     //Create material for floor
     StoneMat* floorMat = new StoneMat();
