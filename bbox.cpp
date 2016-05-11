@@ -57,3 +57,12 @@ bool bbox::intersect(Ray r)
         return false;
     }
 }
+
+float bbox::calcSurfaceArea()
+{
+    float height = maxC.y - minC.y;
+    float width = maxC.x - minC.x;
+    float length = maxC.z - minC.z;
+    
+    return 2 * (height * width) + 2 * (height * length) + 2 * (width * length);
+}

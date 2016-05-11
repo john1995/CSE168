@@ -12,18 +12,21 @@ class bbox
 {
 
 public:
-    bbox();
-    bbox(Vector3, Vector3);
-    bbox (Vector3 maxCorner, Vector3 minCorner, unsigned int numObjs, unsigned int index);
-    ~bbox();
     Vector3   minC;
     Vector3   maxC;
     unsigned int numObjects;
     unsigned int index; // if not leaf, index of left child. If leaf, index of 1st primitive.
-    bool intersect(Ray);
     bbox* children[2];  //each box only allowed two children, so can optimize.
     bool isLeaf;
     int distFromRay;
+    
+    bbox();
+    bbox(Vector3, Vector3);
+    bbox (Vector3 maxCorner, Vector3 minCorner, unsigned int numObjs, unsigned int index);
+    ~bbox();
+    
+    bool intersect(Ray);
+    float calcSurfaceArea();
 };
 
 

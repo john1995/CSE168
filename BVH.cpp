@@ -95,6 +95,11 @@ BVH::build(Objects * objs)
 
 void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
 {
+    //Sort elements in span left_index < - > right_index
+    std::sort(m_objects->begin() + left_index, m_objects->begin() + right_index, sorter);
+    
+    //Check multiple potential split planes parallel to the yz-plane and
+    //perpendicular to the xz-plane
     
 }
 
@@ -118,8 +123,6 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
     if (!currentNode->intersect(ray))
         return false;
     
-    HitInfo lChildHitInfo, rChildHitInfo;
-    
     //loop will terminate if we hit primitive or if we miss bounding box/primitive.
     while (1)
     {
@@ -137,11 +140,13 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
                 {
                     nodeStack.push_back(currentNode->children[0]);
                     currentNode = currentNode->children[1];
+                    continue;
                 }
                 else
                 {
                     nodeStack.push_back(currentNode->children[1]);
                     currentNode = currentNode->children[0];
+                    continue;
                 }
             }
             //case: only right child is intersected
@@ -149,12 +154,14 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
                currentNode->children[1]->intersect(ray))
             {
                 currentNode = currentNode->children[1];
+                continue;
             }
             //case: only left child is intersected
             else if (currentNode->children[0]->intersect(ray) &&
                      !currentNode->children[1]->intersect(ray))
             {
                 currentNode = currentNode->children[0];
+                continue;
             }
             //case: neither children node intersected
             else { /* Do nothing */ }
