@@ -70,8 +70,11 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         //find reflected vector, given normal and incident light direction
         PointLight* pLight = *lightIter;
         
+        //light vector points from hit point to light
         Vector3 l = pLight->position() - hit.P;
         
+        //why did we use ray.d here instead of l? Would just need to change calculation a bit
+        //to use l
         reflected = ray.d - 2.0f * (dot(hit.N, ray.d)) * hit.N;
 
         if (ray.numBounces < maxBounces)
@@ -97,43 +100,6 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
 
         //Get halfway vector
         Vector3 h = (L + -1 * ray.d).normalize();
-
-        //n1/n2  refract from air to glass
-        float M = 1.0f / 1.31f;
-	
-	//Check to see if refraction is coming into material or out of it
-	if(dot(hit.N,l) > 0){
-            M = 1.0f / 1.31f;
-	}
-	else{
-	    M = 1.31f;
-	}
-	
-        //Calculate Refraction Ray
-        /*Vector3 wt = -M * (l-(dot(l,hit.N)*hit.N)) -
-            (sqrt(1- pow(M, 2) * (1- pow(dot(l,hit.N),2))))*hit.N;
-            
-        //trace from refraction
-        if (ray.numBounces < maxBounces)
-        {
-            //trace from reflected vector now
-            Ray refract(ray.numBounces + 1);
-            refract.o = hit.P;
-            refract.d = wt;
-            HitInfo hitRefract;
-                
-            if (scene.trace(hitRefract, refract, 0.01f))
-            {
-                Vector3 color = pLight->color();
-                printf("Bounced refracted ray hit something!\n");
-                L += hitRefract.material->shade(refract, hitRefract, scene);
-            }
-            else
-            {
-                printf("Bounced refracted ray didn't hit anything\n");
-                L += bgColor;
-            }
-        }*/
         
         Ray shadow_ray(0);
         HitInfo hi;

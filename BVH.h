@@ -3,13 +3,14 @@
 
 #include "Miro.h"
 #include "Object.h"
+#include "bbox.h"
 
 class BVH
 {
 public:
     void build(Objects * objs);
 
-    bool intersect(HitInfo& result, const Ray& ray,
+    bool intersect(bbox *box, HitInfo& result, const Ray& ray,
                    float tMin = 0.0f, float tMax = MIRO_TMAX) const;
 
 protected:

@@ -11,12 +11,12 @@ BVH::build(Objects * objs)
 
 
 bool
-BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
+BVH::intersect(bbox *box, HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
 {
     // Here you would need to traverse the BVH to perform ray-intersection
     // acceleration. For now we just intersect every object.
 
-    bool hit = false;
+    /*bool hit = false;
     HitInfo tempMinHit;
     minHit.t = MIRO_TMAX;
     
@@ -32,5 +32,44 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
         }
     }
     
-    return hit;
+    return hit;*/
+    
+    HitInfo childHit;
+    float minDistance = 1000000000000.0f;   //Some impossibly large number.
+    bbox* closestBox = nullptr;
+    
+    if (box->isLeaf)
+    {
+        //Check if ray hits any of the triangles in the leaf
+        return false;   //stub for now.
+    }
+    else
+    {
+        //Check all child boxes.
+        for (std::vector<bbox*>::iterator it = box->children.begin();
+             it != box->children.end(); it++)
+        {
+            if ((*it)->intersect(ray, childHit))
+            {
+                //Save this
+                if (childHit.t < minDistance)
+                {
+                    minDistance = childHit.t;
+                    closestBox = *it;
+                }
+            }
+        }
+        
+        if (closestBox != nullptr)
+        {
+            //Recursively call intersect on next lowest box
+            return intersect(closestBox, minHit, ray);
+        }
+        else
+        {
+            //No intersections with child boxes.
+            return false;
+        }
+    }
+        
 }
