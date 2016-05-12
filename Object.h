@@ -15,7 +15,7 @@ public:
 
     virtual void renderGL() {}
     virtual void preCalc() {}
-
+    int index;
 
     virtual bool intersect(HitInfo& result, const Ray& ray,
                            float tMin = 0.0f, float tMax = MIRO_TMAX) = 0;

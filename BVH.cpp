@@ -58,6 +58,9 @@ BVH::build(Objects * objs)
             //construct a new bounding box, push it back into array of primitive boxes.
             primitiveBoxes[i] = new bbox(maxCorner, minCorner, 1, i);
             
+            //keep an index to that box in the array
+            objs->at(i).index = i;
+            
             continue;   //Go onto the next object.
         }
         
@@ -81,7 +84,8 @@ BVH::build(Objects * objs)
             
             //construct new bounding box, push it back into array of primitive boxes.
             primitiveBoxes[i] = new bbox(maxCorner, minCorner, 1, i);
-            
+            //keep an index to that box in the array
+            objs->at(i).index = i;
             continue;   //go to the next object.
         }
     }
@@ -95,11 +99,88 @@ BVH::build(Objects * objs)
 
 void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
 {
+    Vector3 Lmax, Rmax = new Vector3(1000000.0f,1000000.0f,1000000.0f);
+    Vector3 Lmin, Rmin = new Vector3(-1000000.f,-1000000.0f,-1000000.0f);
+
+    bbox Lchild,Rchild;
+    
+    //float CostOfRay = (float)m_objects-size() * root.calcSurfaceArea();
+    
     //Sort elements in span left_index < - > right_index
     std::sort(m_objects->begin() + left_index, m_objects->begin() + right_index, sorter);
     
     //Check multiple potential split planes parallel to the yz-plane and
     //perpendicular to the xz-plane
+    
+    //Go through whole list between left and right index and find a split index that has a
+    //cost less than the cost of intersecting with all the intersectables
+    //spliti is the spliting index
+    for(int spliti = left_index+1; spliti < right_index; spliti++)
+    {
+        //Calculate left box
+        for(int j = left_index; j < spliti; j++)
+        {
+            //objects now have and index field used to find its box in the boxarray
+            bbox temp = primitiveBoxes[m_objects->at(j).index];
+           
+            
+            //go through the left split and find the min/max for the leftbox
+            //the Lmin.x is always the left most box
+            Lmin.x = primitiveBoxes[m_objects->at(left_index).index].x;
+            Lmin.y = std::min(Lmin.y, temp.minC.y);
+            Lmin.z = std::min(Lmin.z, temp.minC.z);
+            
+            //the Lmax.x is always the right most box
+            Lmax.x = primitiveBoxes[m_objects->at(spliti-1).index].x;
+            Lmax.y = std::max(Lmax.y, temp.maxC.y);
+            Lmax.z = std::max(Lmax.z, temp.maxC.z);
+
+        }
+        
+        
+        Lchild = new bbox(Lmax,Lmin, spliti - leftindex, 0);
+        
+        //Calculate right box
+        for(int k = spliti; k < right_index; k++)
+        {
+            //same logic as left box
+            bbox temp = primitiveBoxes[m_objects->at(k).index];
+            
+            Rmin.x = primitiveBoxes[m_objects->at(spliti).index].x;
+            Rmin.y = std::min(Rmin.y, temp.minC.y);
+            Rmin.z = std::min(Rmin.z, temp.minC.z);
+            
+            Rmax.x = primitiveBoxes[m_objects->at(right_index-1).index].x;
+            Rmax.y = std::max(Rmax.y, temp.maxC.y);
+            Rmax.z = std::max(Rmax.z, temp.maxC.z);
+
+        }
+        
+        Rchild = new bbox(Rmax,Rmin, right_index - spliti, 0);
+        
+        //Compute cost of split
+        float c = (Lchild.calcSurfaceArea()/box.calcSurfaceArea()) * (float)Lchild.numObjects +
+                  (Rchild.calcSurfaceArea()/box.calcSurfaceArea()) * (float)Rchild.numObjects;
+        
+        //Computer cost of all intersectables
+        float nc = box.numObjects; //Not sure if this is right.
+        
+        if( c < nc)
+        {
+            //assign children
+            box->children[0] = Lchild;
+            box->children[1] = Rchild;
+            
+            //Use this split for the recursion
+
+            build_recursive(left_index, spliti, box->children[0], depth + 1)
+            build_recursive(spliti, right_index, box->children[1], depth + 1)
+        }
+        else
+        {
+          //dont split at this index. This is a leaf node. Not sure what to do here.
+        }
+    }
     
 }
 
