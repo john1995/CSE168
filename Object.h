@@ -5,6 +5,8 @@
 #include "Miro.h"
 #include "Material.h"
 
+class bbox;
+
 class Object
 {
 public:
@@ -15,7 +17,7 @@ public:
 
     virtual void renderGL() {}
     virtual void preCalc() {}
-    int index;
+    bbox* boundingBox;  //bounding box for this single primitive. Useful for BVH construction.
 
     virtual bool intersect(HitInfo& result, const Ray& ray,
                            float tMin = 0.0f, float tMax = MIRO_TMAX) = 0;

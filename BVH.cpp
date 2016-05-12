@@ -2,13 +2,35 @@
 #include "Ray.h"
 #include "Console.h"
 
+//function for sorting bounding boxes
+bool sortObjs(Object* a, Object* b)
+{
+    //Will be sorted along x-axis position. If same along x, then check y. If same
+    //along y, then check z (Hopefully won't have a scene where two triangles are on top
+    //of each other).
+    Vector3 midpointA((a->boundingBox->minC.x + a->boundingBox->maxC.x) / 2.0f,
+                      (a->boundingBox->minC.y + a->boundingBox->maxC.y) / 2.0f,
+                      (a->boundingBox->minC.z + a->boundingBox->maxC.z) / 2.0f);
+    
+    Vector3 midpointB((b->boundingBox->minC.x + b->boundingBox->maxC.x) / 2.0f,
+                      (b->boundingBox->minC.y + b->boundingBox->maxC.y) / 2.0f,
+                      (b->boundingBox->minC.z + b->boundingBox->maxC.z) / 2.0f);
+    
+    if (midpointA.x != midpointB.x)
+        return midpointA.x < midpointB.x;
+    else if (midpointA.y != midpointB.y)
+        return midpointA.y < midpointB.y;
+    else if (midpointA.z < midpointB.z)
+        return midpointA.z < midpointB.z;
+    else
+        return false;   //They are equal, don't need to be swapped.
+}
+
 void
 BVH::build(Objects * objs)
 {
     // construct the bounding volume hierarchy
     m_objects = objs;
-    
-    bbox* primitiveBoxes[objs->size()];
     
     //Vectors to store farthest reaching positions of any primitive.
     //Useful for constructing global bounding box.
@@ -56,10 +78,7 @@ BVH::build(Objects * objs)
             globalMax.z = std::max(globalMax.z, maxCorner.z);
             
             //construct a new bounding box, push it back into array of primitive boxes.
-            primitiveBoxes[i] = new bbox(maxCorner, minCorner, 1, i);
-            
-            //keep an index to that box in the array
-            objs->at(i).index = i;
+            tri->boundingBox = new bbox(maxCorner, minCorner, 1, i);
             
             continue;   //Go onto the next object.
         }
@@ -83,9 +102,8 @@ BVH::build(Objects * objs)
             globalMax.z = std::max(globalMax.z, maxCorner.z);
             
             //construct new bounding box, push it back into array of primitive boxes.
-            primitiveBoxes[i] = new bbox(maxCorner, minCorner, 1, i);
-            //keep an index to that box in the array
-            objs->at(i).index = i;
+            s->boundingBox = new bbox(maxCorner, minCorner, 1, i);
+            
             continue;   //go to the next object.
         }
     }
@@ -94,94 +112,122 @@ BVH::build(Objects * objs)
     root = new bbox(globalMax, globalMin, objs->size(), 0);
     
     //Figure out where to best split the global box using the surface area heuristic.
-    //build_recursive(int 0, int objs->size(), root, 0);
+    build_recursive(0, objs->size(), root, 0);
 }
 
 void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
 {
-    Vector3 Lmax, Rmax = new Vector3(1000000.0f,1000000.0f,1000000.0f);
-    Vector3 Lmin, Rmin = new Vector3(-1000000.f,-1000000.0f,-1000000.0f);
-
-    bbox Lchild,Rchild;
+    //temporary boxes for calculating cost.
+    bbox tempLeft, tempRight;
+    
+    //holds lowest cost
+    float lowestCost = 1000000000000;   //starts at some impossibly high cost.
+    int bestSplit = -1;                 //best index to divide primitives at.
     
     //float CostOfRay = (float)m_objects-size() * root.calcSurfaceArea();
     
     //Sort elements in span left_index < - > right_index
-    std::sort(m_objects->begin() + left_index, m_objects->begin() + right_index, sorter);
+    std::sort(m_objects->begin() + left_index, m_objects->begin() + right_index, sortObjs);
     
     //Check multiple potential split planes parallel to the yz-plane and
     //perpendicular to the xz-plane
+    //temp. variables for storing potential dimensions of child boxes
+    Vector3 lMin, lMax, rMin, rMax;
+    
+    //Initial left bounding box just includes object at left_index.
+    lMin = m_objects->at(left_index)->boundingBox->minC;
+    lMax = m_objects->at(left_index)->boundingBox->maxC;
+    
+    rMin.set(100000.0f, 100000.0f, 100000.0f);    //easily find smaller corner
+    rMax.set(-100000.0f, -100000.0f, -100000.0f);     //easily find larger corner
     
     //Go through whole list between left and right index and find a split index that has a
     //cost less than the cost of intersecting with all the intersectables
     //spliti is the spliting index
     for(int spliti = left_index+1; spliti < right_index; spliti++)
     {
-        //Calculate left box
-        for(int j = left_index; j < spliti; j++)
-        {
-            //objects now have and index field used to find its box in the boxarray
-            bbox temp = primitiveBoxes[m_objects->at(j).index];
-           
-            
-            //go through the left split and find the min/max for the leftbox
-            //the Lmin.x is always the left most box
-            Lmin.x = primitiveBoxes[m_objects->at(left_index).index].x;
-            Lmin.y = std::min(Lmin.y, temp.minC.y);
-            Lmin.z = std::min(Lmin.z, temp.minC.z);
-            
-            //the Lmax.x is always the right most box
-            Lmax.x = primitiveBoxes[m_objects->at(spliti-1).index].x;
-            Lmax.y = std::max(Lmax.y, temp.maxC.y);
-            Lmax.z = std::max(Lmax.z, temp.maxC.z);
-
-        }
+        //go through the left split and find the min/max for the leftbox
+        //the Lmin.x is always the left most box
+        lMin.x = m_objects->at(left_index)->boundingBox->minC.x;
         
+        //min between current y min. and y of new triangle
+        lMin.y = std::min(lMin.y, m_objects->at(spliti - 1)->boundingBox->minC.y);
         
-        Lchild = new bbox(Lmax,Lmin, spliti - leftindex, 0);
+        //min between current z min. and z of new triangle
+        lMin.z = std::min(lMin.z, m_objects->at(spliti - 1)->boundingBox->minC.z);
         
-        //Calculate right box
+        //the Lmax.x is always the right most box
+        lMax.x = m_objects->at(spliti - 1)->boundingBox->maxC.x;
+        
+        //max between current y max and y coord. of maxCorner of bbox of new tri
+        lMax.y = std::max(lMax.y, m_objects->at(spliti - 1)->boundingBox->maxC.y);
+        
+        //max between current z max and the z coord. of maxCorner of bbox of new tri
+        lMax.z = std::max(lMax.z, m_objects->at(spliti - 1)->boundingBox->maxC.z);
+        
+        //ASK IF THERE IS BETTER WAY TO FIND DIMENSIONS OF RIGHT BB.
+        //WOULD BE NICE TO ELIMINATE LOOP.
+        
+        //Can isolate x dimensions of right box
+        rMin.x = m_objects->at(spliti)->boundingBox->minC.x;
+        rMax.x = m_objects->at(right_index-1)->boundingBox->maxC.x;
+        
+        //Calculate y and z dimensions of the right box
         for(int k = spliti; k < right_index; k++)
         {
-            //same logic as left box
-            bbox temp = primitiveBoxes[m_objects->at(k).index];
+            rMin.y = std::min(rMin.y, m_objects->at(k)->boundingBox->minC.y);
+            rMin.z = std::min(rMin.z, m_objects->at(k)->boundingBox->minC.z);
             
-            Rmin.x = primitiveBoxes[m_objects->at(spliti).index].x;
-            Rmin.y = std::min(Rmin.y, temp.minC.y);
-            Rmin.z = std::min(Rmin.z, temp.minC.z);
-            
-            Rmax.x = primitiveBoxes[m_objects->at(right_index-1).index].x;
-            Rmax.y = std::max(Rmax.y, temp.maxC.y);
-            Rmax.z = std::max(Rmax.z, temp.maxC.z);
-
+            rMax.y = std::max(rMax.y, m_objects->at(k)->boundingBox->maxC.y);
+            rMax.z = std::max(rMax.z, m_objects->at(k)->boundingBox->maxC.z);
         }
         
-        Rchild = new bbox(Rmax,Rmin, right_index - spliti, 0);
+        tempLeft.minC.set(lMin);
+        tempLeft.maxC.set(lMax);
+        tempLeft.index = left_index;
+        tempLeft.numObjects = spliti - left_index;
+        
+        tempRight.minC.set(rMin);
+        tempRight.maxC.set(rMax);
+        tempRight.index = spliti;
+        tempRight.numObjects = right_index - spliti;
         
         //Compute cost of split
-        float c = (Lchild.calcSurfaceArea()/box.calcSurfaceArea()) * (float)Lchild.numObjects +
-                  (Rchild.calcSurfaceArea()/box.calcSurfaceArea()) * (float)Rchild.numObjects;
+        float c = (tempLeft.calcSurfaceArea()/box->calcSurfaceArea()) *
+        (float)tempLeft.numObjects + (tempRight.calcSurfaceArea()/box->calcSurfaceArea()) *
+        (float)tempRight.numObjects;
         
-        //Computer cost of all intersectables
-        float nc = box.numObjects; //Not sure if this is right.
-        
-        if( c < nc)
+        if( c < lowestCost)
         {
-            //assign children
-            box->children[0] = Lchild;
-            box->children[1] = Rchild;
+            lowestCost = c;
+            bestSplit = spliti;
             
-            //Use this split for the recursion
-
-            build_recursive(left_index, spliti, box->children[0], depth + 1)
-            build_recursive(spliti, right_index, box->children[1], depth + 1)
-        }
-        else
-        {
-          //dont split at this index. This is a leaf node. Not sure what to do here.
+            //delete old left child and right child
+            delete box->children[0];
+            delete box->children[1];
+            
+            //create new best potential candidate bounding boxes
+            box->children[0] = new bbox(tempLeft);
+            box->children[1] = new bbox(tempRight);
         }
     }
+    //End of loop. Should have optimal place to split at. Check if its cost
+    //is lower than just raytracing from parent
+    float nc = box->numObjects; //Not sure if this is right.
     
+    if (nc < lowestCost)
+    {
+        //delete the child boxes, initialize node as a leaf
+        delete box->children[0];
+        delete box->children[1];
+        box->isLeaf = true;
+    }
+    else
+    {
+        //Recursively split.
+        build_recursive(left_index, bestSplit, box->children[0], depth + 1);
+        build_recursive(bestSplit, right_index, box->children[1], depth + 1);
+    }
 }
 
 

@@ -3,7 +3,6 @@
 
 #include "Vector3.h"
 #include "Ray.h"
-#include "Object.h"
 #include <vector>
 
 //Instead of holding pointers to actual primitives, the bounding boxes hold the indices
@@ -22,7 +21,8 @@ public:
     
     bbox();
     bbox(Vector3, Vector3);
-    bbox (Vector3 maxCorner, Vector3 minCorner, unsigned int numObjs, unsigned int index);
+    bbox(Vector3 maxCorner, Vector3 minCorner, unsigned int numObjs, unsigned int index);
+    bbox(bbox&);     //copy constructor
     ~bbox();
     
     bool intersect(Ray);
