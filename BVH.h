@@ -14,6 +14,7 @@
 class BVH
 {
 public:
+    BVH();
     void build(Objects * objs);
     void build_recursive(int left_index, int right_index, bbox* box, int depth);
 
@@ -22,7 +23,9 @@ public:
 
 protected:
     Objects * m_objects;
+    
     bbox* root;
+    const uint MAX_BINS;   //number of bins to place primitives into at each level.
 };
 
 #endif // CSE168_BVH_H_INCLUDED

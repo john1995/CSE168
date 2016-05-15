@@ -23,6 +23,9 @@ public:
     virtual bool intersect(HitInfo& result, const Ray& ray,
                            float tMin = 0.0f, float tMax = MIRO_TMAX);
     
+    //Calculate centroid of triangle
+    Vector3 calcCentroid();
+    
 protected:
     TriangleMesh* m_mesh;   //Ptr to the mesh this triangle is a part of
     unsigned int m_index;   //index of the triangle in the TriangleMesh

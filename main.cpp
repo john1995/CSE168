@@ -375,6 +375,49 @@ makeSponzaScene()
     g_scene->preCalc();
 }
 
+void makeTestScene()
+{
+    g_camera = new Camera;
+    g_scene = new Scene;
+    g_image = new Image;
+    
+    g_image->resize(512, 512);
+    
+    // set up the camera
+    g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
+    g_camera->setEye(Vector3(8, 1.5, 1));
+    g_camera->setLookAt(Vector3(0, 2.5, -1));
+    g_camera->setUp(Vector3(0, 1, 0));
+    g_camera->setFOV(55);
+    
+    // create and place a point light source
+    PointLight * light = new PointLight;
+    light->setPosition(Vector3(0, 10.0, 0));
+    light->setColor(Vector3(1, 1, 1));
+    light->setWattage(200);
+    g_scene->addLight(light);
+    
+    Material* mat = new Lambert(Vector3(1.0f));
+    
+    TriangleMesh * floor = new TriangleMesh;
+    floor->createSingleTriangle();
+    floor->setV1(Vector3(  0, 10,  10));
+    floor->setV2(Vector3( 10, 0, -10));
+    floor->setV3(Vector3(-10, 0, -10));
+    floor->setN1(Vector3(0, 1, 0));
+    floor->setN2(Vector3(0, 1, 0));
+    floor->setN3(Vector3(0, 1, 0));
+    
+    Triangle* t = new Triangle;
+    t->setIndex(0);
+    t->setMesh(floor);
+    t->setMaterial(mat);
+    g_scene->addObject(t);
+    
+    // let objects do pre-calculations if needed
+    g_scene->preCalc();
+}
+
 
 // local helper function definitions
 namespace
@@ -669,7 +712,7 @@ main(int argc, char*argv[])
     tester.testTriangleIntersection();
     
     // create a scene
-    makeTeapotScene();
+    makeBunny1Scene();
 
     MiroWindow miro(&argc, argv);
     miro.mainLoop();

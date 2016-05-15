@@ -1,6 +1,9 @@
 #include "BVH.h"
 #include "Ray.h"
 #include "Console.h"
+#include <math.h>
+
+BVH::BVH() : MAX_BINS(10) {}
 
 //function for sorting bounding boxes
 bool sortObjs(Object* a, Object* b)
@@ -79,6 +82,7 @@ BVH::build(Objects * objs)
             
             //construct a new bounding box, push it back into array of primitive boxes.
             tri->boundingBox = new bbox(maxCorner, minCorner, 1, i);
+            tri->centroid = (maxCorner + minCorner) / 2.0f;
             
             continue;   //Go onto the next object.
         }
@@ -103,13 +107,18 @@ BVH::build(Objects * objs)
             
             //construct new bounding box, push it back into array of primitive boxes.
             s->boundingBox = new bbox(maxCorner, minCorner, 1, i);
+            s->centroid = s->center();
             
             continue;   //go to the next object.
         }
     }
     
+    //printf("minCorner of global box: %f %f %f\n", globalMin.x, globalMin.y, globalMin.z);
+    //printf("maxCorner of global box: %f %f %f\n", globalMax.x, globalMax.y, globalMax.z);
+    
     //Now make global box that encompasses all primitives.
     root = new bbox(globalMax, globalMin, objs->size(), 0);
+    //printf("number of objects in the root: %u\n", root->numObjects);
     
     //Figure out where to best split the global box using the surface area heuristic.
     build_recursive(0, objs->size(), root, 0);
@@ -117,90 +126,181 @@ BVH::build(Objects * objs)
 
 void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
 {
+    //printf("In build_recursive\n");
+    printf("left index: %u, right index: %u\n", left_index, right_index);
+    printf("Depth: %u\n", depth);
+    //Stop when number of objects in box <= 8
+    if (box->numObjects <= 8 || depth > 20)
+    {
+        //this is a leaf. Store index of first object, amount in
+        box->isLeaf = true;
+        box->index = left_index;
+        box->numObjects = right_index - left_index;
+        //printf("8 or fewer objects in box, returning\n");
+        return;
+    }
+    
     //temporary boxes for calculating cost.
     bbox tempLeft, tempRight;
     
+    box->children[0] = nullptr;
+    box->children[1] = nullptr;
+    
+    int binCount[MAX_BINS];
+    
+    for (int i = 0; i < MAX_BINS; i++)
+    {
+        binCount[i] = 0;
+    }
+    
+    //Initialize dimensions of each temp box to be dimensions of parent. Only values that
+    //will ever change are the lengths of the boxes along the largest axis.
+    tempLeft.minC = box->minC;
+    tempLeft.maxC = box->maxC;
+    tempRight.minC = box->minC;
+    tempRight.maxC = box->maxC;
+    
+    int k;  //variable that stores coordinate we will be using to find bin for tri (x, y, or z)
+    
+    //calculate the largest dimension of this bounding box. Will determine which
+    //dimensions we will be dividing bins on. Got to be better way to do this.
+    float xLength = box->maxC.x - box->minC.x;
+    float yLength = box->maxC.y - box->minC.y;
+    float zLength = box->maxC.z - box->minC.z;
+    float longestDimLen;
+    float minD;
+    
+    if (xLength > yLength && xLength > zLength)
+    {
+        k = 0;
+        longestDimLen = xLength;
+        minD = box->minC.x;
+        //printf("Longest dimension is x, length %f\n", xLength);
+    }
+    else if (yLength > xLength && yLength > zLength)
+    {
+        k = 1;
+        longestDimLen = yLength;
+        minD = box->minC.y;
+        //printf("Longest dimension is y, length %f\n", yLength);
+    }
+    else
+    {
+        k = 2;
+        longestDimLen = zLength;
+        minD = box->minC.z;
+        //printf("Longest dimension is z, length %f\n", zLength);
+    }
+    
+    /**********************************************************************/
+    
     //holds lowest cost
-    float lowestCost = 1000000000000;   //starts at some impossibly high cost.
+    float lowestCost = -1;   //starts at some impossibly high cost.
     int bestSplit = -1;                 //best index to divide primitives at.
+    int bestAmtInLft = 0;               //amount in left box for optimal split.
     
-    //float CostOfRay = (float)m_objects-size() * root.calcSurfaceArea();
+    int numBins;      //how many times are we going to evaluate the cost fn?
     
-    //Sort elements in span left_index < - > right_index
-    std::sort(m_objects->begin() + left_index, m_objects->begin() + right_index, sortObjs);
+    //printf("number of objects in parent box: %u\n", box->numObjects);
+    //printf("max number of bins: %u\n", MAX_BINS);
     
-    //Check multiple potential split planes parallel to the yz-plane and
-    //perpendicular to the xz-plane
-    //temp. variables for storing potential dimensions of child boxes
-    Vector3 lMin, lMax, rMin, rMax;
+    //Check if number of objects in box < number of bins
+    if (box->numObjects < MAX_BINS)
+    {
+        //printf("Fewer than %u objects in box, just splitting around BBs\n", MAX_BINS);
+        numBins = box->numObjects;
+    }
+    else
+        numBins = MAX_BINS;
     
-    //Initial left bounding box just includes object at left_index.
-    lMin = m_objects->at(left_index)->boundingBox->minC;
-    lMax = m_objects->at(left_index)->boundingBox->maxC;
+    //printf("numBins: %u\n", numBins);
     
-    rMin.set(100000.0f, 100000.0f, 100000.0f);    //easily find smaller corner
-    rMax.set(-100000.0f, -100000.0f, -100000.0f);     //easily find larger corner
+    Object* temp;
+    
+    //precompute values to make bin sorting faster
+    float k1 = numBins / longestDimLen;
+    
+    //loop through every object in node, find which node each object is in.
+    for (int i = left_index; i < right_index; i++)
+    {
+        temp = m_objects->at(i);
+        //printf("getting tri at index %u\n", i);
+        //printf("trianle %u centroid along %u is %f\n", i, k, temp->centroid[k]);
+        //printf("length of longest dimension: %f\n", longestDimLen);
+        temp->binID = floor((float)(temp->centroid[k] - minD) * k1);
+        
+        //increment number of objects in this bin.
+        binCount[temp->binID]++;
+        //printf("number of tris in bin %u: %u\n", temp->binID, binCount[temp->binID]);
+    }
+    
+    int count = 0;
+    //for (int a = 0; a < numBins; a++)
+    //{
+    //    count += binCount[a];
+    //}
+    
+    bool minRight = false;
+    
+    //printf("Amount of triangles in scene: %u\n", count);
+    
+    //holds how many objects are in left box.
+    int objsInLeft = 0;
+    
+    float c = 0.0f;    //where lowest cost will be stored
     
     //Go through whole list between left and right index and find a split index that has a
     //cost less than the cost of intersecting with all the intersectables
-    //spliti is the spliting index
-    for(int spliti = left_index+1; spliti < right_index; spliti++)
+    //spliti is the spliting index.
+    //IN THIS LOOP, FIND STARTING LEFT BOX WHERE THERE ARE OBJECTS, AND ENDING RIGHT BOX
+    //WHERE THERE AREN'T OBJECTS AFTER (LATER)
+    for(int i = 1; i < numBins; ++i)
     {
-        //go through the left split and find the min/max for the leftbox
-        //the Lmin.x is always the left most box
-        lMin.x = m_objects->at(left_index)->boundingBox->minC.x;
+        objsInLeft += binCount[i - 1];
         
-        //min between current y min. and y of new triangle
-        lMin.y = std::min(lMin.y, m_objects->at(spliti - 1)->boundingBox->minC.y);
-        
-        //min between current z min. and z of new triangle
-        lMin.z = std::min(lMin.z, m_objects->at(spliti - 1)->boundingBox->minC.z);
-        
-        //the Lmax.x is always the right most box
-        lMax.x = m_objects->at(spliti - 1)->boundingBox->maxC.x;
-        
-        //max between current y max and y coord. of maxCorner of bbox of new tri
-        lMax.y = std::max(lMax.y, m_objects->at(spliti - 1)->boundingBox->maxC.y);
-        
-        //max between current z max and the z coord. of maxCorner of bbox of new tri
-        lMax.z = std::max(lMax.z, m_objects->at(spliti - 1)->boundingBox->maxC.z);
-        
-        //ASK IF THERE IS BETTER WAY TO FIND DIMENSIONS OF RIGHT BB.
-        //WOULD BE NICE TO ELIMINATE LOOP.
-        
-        //Can isolate x dimensions of right box
-        rMin.x = m_objects->at(spliti)->boundingBox->minC.x;
-        rMax.x = m_objects->at(right_index-1)->boundingBox->maxC.x;
-        
-        //Calculate y and z dimensions of the right box
-        for(int k = spliti; k < right_index; k++)
+        //First need to adjust min corners and max corners of left and right boxes.
+        if (k == 0) //longest dimension is x
         {
-            rMin.y = std::min(rMin.y, m_objects->at(k)->boundingBox->minC.y);
-            rMin.z = std::min(rMin.z, m_objects->at(k)->boundingBox->minC.z);
-            
-            rMax.y = std::max(rMax.y, m_objects->at(k)->boundingBox->maxC.y);
-            rMax.z = std::max(rMax.z, m_objects->at(k)->boundingBox->maxC.z);
+            //find length of potential box in x direction
+            float xCoord = (xLength / numBins) * i + tempLeft.minC.x;
+            tempLeft.maxC.x = xCoord;
+            tempRight.minC.x = xCoord;
+        }
+        else if (k == 0)   //longest dimension is y
+        {
+            //find length of potential box in y direction
+            float yCoord = (yLength / numBins) * i + tempLeft.minC.y;
+            tempLeft.maxC.y = yCoord;
+            tempRight.minC.y = yCoord;
+        }
+        else    //longest dimension is z
+        {
+            //find length of potential box in x direction
+            float zCoord = (zLength / numBins) * i + tempLeft.minC.z;
+            tempLeft.maxC.z = zCoord;
+            tempRight.minC.z = zCoord;
         }
         
-        tempLeft.minC.set(lMin);
-        tempLeft.maxC.set(lMax);
-        tempLeft.index = left_index;
-        tempLeft.numObjects = spliti - left_index;
-        
-        tempRight.minC.set(rMin);
-        tempRight.maxC.set(rMax);
-        tempRight.index = spliti;
-        tempRight.numObjects = right_index - spliti;
+        tempLeft.numObjects = objsInLeft;
+        tempRight.numObjects = box->numObjects - objsInLeft;
         
         //Compute cost of split
-        float c = (tempLeft.calcSurfaceArea()/box->calcSurfaceArea()) *
-        (float)tempLeft.numObjects + (tempRight.calcSurfaceArea()/box->calcSurfaceArea()) *
-        (float)tempRight.numObjects;
+        /*printf("Surface area of left box: %f\n", tempLeft.calcSurfaceArea());
+        printf("Surface area of right box: %f\n", tempRight.calcSurfaceArea());*/
+        //printf("Num of objects in left box: %u\n", tempLeft.numObjects);
+        //printf("Num of objects in right box: %u\n", tempRight.numObjects);
+        c = tempLeft.calcSurfaceArea() * (float)tempLeft.numObjects +
+        tempRight.calcSurfaceArea() * (float)tempRight.numObjects;
         
-        if( c < lowestCost)
+        printf("Cost: %f\n", c);
+        
+        if( c < lowestCost || lowestCost == -1)
         {
             lowestCost = c;
-            bestSplit = spliti;
+            bestSplit = i;
+            printf("new lowest cost! best split: %u\n", bestSplit);
+            bestAmtInLft = objsInLeft;
+            //printf("Best amount of triangles in left box: %u\n", bestAmtInLft);
             
             //delete old left child and right child
             delete box->children[0];
@@ -211,23 +311,65 @@ void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
             box->children[1] = new bbox(tempRight);
         }
     }
-    //End of loop. Should have optimal place to split at. Check if its cost
-    //is lower than just raytracing from parent
-    float nc = box->numObjects; //Not sure if this is right.
     
-    if (nc < lowestCost)
+    printf("Amount of nodes in left box at best place to split: %u\n", bestAmtInLft);
+    
+    float leftSwapIndex = -1;
+    float rightSwapIndex = -1;
+    
+    //Reorder objects so ones in left child box are on left side,
+    //ones in right child box are on right side. Similar to a quicksort.
+    for (int i = 0; i < bestAmtInLft; i++)
     {
-        //delete the child boxes, initialize node as a leaf
-        delete box->children[0];
-        delete box->children[1];
-        box->isLeaf = true;
+        for (int j = left_index; j < left_index + bestAmtInLft; j++)
+        {
+            //printf("index trying to find misplaced left tri: %u\n", j);
+            if (m_objects->at(j)->binID >= bestSplit)
+            {
+                leftSwapIndex = j;
+                break;
+            }
+        }
+        
+        for (int k = right_index - 1; k >= left_index + bestAmtInLft; k--)
+        {
+            //printf("index trying to find misplaced right tri: %u\n", k);
+            if (m_objects->at(k)->binID < bestSplit)
+            {
+                rightSwapIndex = k;
+                break;
+            }
+        }
+        
+        //test checks - should never go into first one
+        if ((leftSwapIndex == -1 && rightSwapIndex != -1) ||
+            (leftSwapIndex != -1 && rightSwapIndex == -1))
+        {
+            //printf("Something went wrong\n");
+        }
+
+        if (leftSwapIndex != -1 && rightSwapIndex != -1)
+        {
+            //swap the elements
+            temp = m_objects->at(leftSwapIndex);
+            m_objects->at(leftSwapIndex) = m_objects->at(rightSwapIndex);
+            m_objects->at(rightSwapIndex) = temp;
+        }
+        
+        //reset swap indices
+        leftSwapIndex = -1;
+        rightSwapIndex = -1;
     }
-    else
+    
+    //loop through every object, make sure in right place
+    for (int i = left_index; i < right_index; i++)
     {
-        //Recursively split.
-        build_recursive(left_index, bestSplit, box->children[0], depth + 1);
-        build_recursive(bestSplit, right_index, box->children[1], depth + 1);
+        printf("bin of object %u: %u\n", i, m_objects->at(i)->binID);
     }
+    
+    //Recursively split.
+    build_recursive(left_index, left_index + bestAmtInLft, box->children[0], depth + 1);
+    build_recursive(left_index + bestAmtInLft, right_index, box->children[1], depth + 1);
 }
 
 

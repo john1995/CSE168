@@ -117,3 +117,18 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
     else
         return false;
 }
+
+Vector3 Triangle::calcCentroid()
+{
+    //get vertices of triangle
+    //Get the triangle by its index within the mesh it is a part of
+    TriangleMesh::TupleI3 ti3 = m_mesh->vIndices()[m_index];
+    
+    const Vector3& a = m_mesh->vertices()[ti3.x]; //vertex a of triangle
+    const Vector3& b = m_mesh->vertices()[ti3.y]; //vertex b of triangle
+    const Vector3& c = m_mesh->vertices()[ti3.z]; //vertex c of triangle
+    
+    return Vector3 ((a.x + b.x + c.x) / 3.0,
+                    (a.y + b.y + c.y) / 3.0,
+                    (a.z + b.z + c.z) / 3.0);
+}
