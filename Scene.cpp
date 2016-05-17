@@ -38,7 +38,7 @@ Scene::preCalc()
 
     m_bvh.build(&m_objects);
     
-    //m_bvh.printStatistics();
+    m_bvh.printStatistics();
 }
 
 void

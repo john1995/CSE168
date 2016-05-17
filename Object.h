@@ -20,8 +20,6 @@ public:
     bbox* boundingBox;  //bounding box for this single primitive. Useful for BVH construction.
     Vector3 centroid;   //the midpoint of this object that will be used to determine which child
                         //box it is a part of during BVH construction.
-    int binID;          //# bin this object is a part of. Useful when counting objects in bin
-                        //for calculating Surface Area Heuristic.
 
     virtual bool intersect(HitInfo& result, const Ray& ray,
                            float tMin = 0.0f, float tMax = MIRO_TMAX) = 0;

@@ -3,23 +3,30 @@
 
 bbox::bbox()
 {
-    
+    objects = nullptr;
 }
 
 bbox::bbox(Vector3 max, Vector3 min)
 {
     maxC = max;
     minC = min;
+    objects = nullptr;
 }
 
-bbox::bbox(Vector3 maxCorner, Vector3 minCorner, unsigned int numObjs, unsigned int index) :
-maxC(maxCorner), minC(minCorner), numObjects(numObjs), index(index) {}
+bbox::bbox(Vector3 maxCorner, Vector3 minCorner, unsigned int numObjs) :
+maxC(maxCorner), minC(minCorner), numObjects(numObjs)
+{
+    objects = new Object*[numObjects];
+}
 
-bbox::bbox(bbox& copy) : maxC(copy.maxC), minC(copy.minC), numObjects(copy.numObjects),
-index(copy.index) {}
+bbox::bbox(bbox& copy) : maxC(copy.maxC), minC(copy.minC), numObjects(copy.numObjects)
+{
+    objects = new Object*[numObjects];
+}
 
 bbox::~bbox()
 {
+    delete[] objects;
 }
 
 bool bbox::intersect(Ray r)

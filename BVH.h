@@ -16,7 +16,7 @@ class BVH
 public:
     BVH();
     void build(Objects * objs);
-    void build_recursive(int left_index, int right_index, bbox* box, int depth);
+    void splitNode(bbox* box, int depth);
 
     bool intersect(HitInfo& result, const Ray& ray,
                    float tMin = 0.0f, float tMax = MIRO_TMAX) const;

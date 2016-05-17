@@ -13,15 +13,15 @@ class bbox
 public:
     Vector3   minC;
     Vector3   maxC;
-    unsigned int numObjects;
-    unsigned int index; // if not leaf, index of left child. If leaf, index of 1st primitive.
+    Object** objects;
     bbox* children[2];  //each box only allowed two children, so can optimize.
     bool isLeaf;
     float distFromRay;
+    unsigned int numObjects;
     
     bbox();
     bbox(Vector3, Vector3);
-    bbox(Vector3 maxCorner, Vector3 minCorner, unsigned int numObjs, unsigned int index);
+    bbox(Vector3 maxCorner, Vector3 minCorner, unsigned int numObjs);
     bbox(bbox&);     //copy constructor
     ~bbox();
     
