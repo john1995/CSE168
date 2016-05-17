@@ -126,3 +126,38 @@ void bbox::printBox(int level, bool right)
     if (children[1] != nullptr)
         children[1]->printBox(level + 1, true);
 }
+
+void bbox::drawNode()
+{
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(maxC.x, maxC.y, maxC.z);
+    glVertex3f(maxC.x, maxC.y, minC.z);
+    glVertex3f(minC.x, maxC.y, minC.z);
+    glVertex3f(minC.x, maxC.y, maxC.z);
+    glEnd();
+    
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(maxC.x, minC.y, maxC.z);
+    glVertex3f(maxC.x, minC.y, minC.z);
+    glVertex3f(minC.x, minC.y, minC.z);
+    glVertex3f(minC.x, minC.y, maxC.z);
+    glEnd();
+    
+    glBegin(GL_LINES);
+    glVertex3f(maxC.x, maxC.y, maxC.z);
+    glVertex3f(maxC.x, minC.y, maxC.z);
+    glVertex3f(maxC.x, maxC.y, minC.z);
+    glVertex3f(maxC.x, minC.y, minC.z);
+    glVertex3f(minC.x, maxC.y, minC.z);
+    glVertex3f(minC.x, minC.y, minC.z);
+    glVertex3f(minC.x, maxC.y, maxC.z);
+    glVertex3f(minC.x, minC.y, maxC.z);
+    glEnd();
+    
+    if (children[0] != nullptr)
+        children[0]->drawNode();
+    
+    if (children[1] != nullptr)
+        children[1]->drawNode();
+    
+}

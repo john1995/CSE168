@@ -26,6 +26,8 @@ public:
     
     void printStatistics();
     
+    void drawBVH();
+    
     static uint numNodes, numLeaves, rayBoxIntersections, rayTriIntersections;
 
 protected:

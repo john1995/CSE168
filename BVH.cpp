@@ -526,3 +526,8 @@ void BVH::printStatistics()
     printf("Number of ray-box intersections: %u\n", rayBoxIntersections);
     printf("Number of ray-triangle intersections: %u\n\n", rayTriIntersections);
 }
+
+void BVH::drawBVH()
+{
+    root->drawNode();
+}

@@ -4,6 +4,7 @@
 #include "Vector3.h"
 #include "Ray.h"
 #include <vector>
+#include "OpenGL.h"
 
 //Instead of holding pointers to actual primitives, the bounding boxes hold the indices
 //of the primitives in the top-level objs* vector passed into BVH::build
@@ -31,6 +32,7 @@ public:
     
     //Tests if box passed in as parameter is intersects this box.
     bool testCollision(bbox*);
+    void drawNode();
     
     //level = level of tree. right: left = false, right = true.
     void printBox(int level, bool right);

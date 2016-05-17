@@ -12,6 +12,7 @@ Scene::openGL(Camera *cam)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     cam->drawGL();
+    m_bvh.drawBVH();
 
     // draw objects
     for (size_t i = 0; i < m_objects.size(); ++i)

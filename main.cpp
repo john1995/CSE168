@@ -720,8 +720,9 @@ main(int argc, char*argv[])
     
     //create a scene
     makeBunny1Scene();
-
+    
     MiroWindow miro(&argc, argv);
+
     miro.mainLoop();
 
     return 0; // never executed
