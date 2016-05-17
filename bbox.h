@@ -17,7 +17,7 @@ public:
     unsigned int index; // if not leaf, index of left child. If leaf, index of 1st primitive.
     bbox* children[2];  //each box only allowed two children, so can optimize.
     bool isLeaf;
-    int distFromRay;
+    float distFromRay;
     
     bbox();
     bbox(Vector3, Vector3);
@@ -27,6 +27,13 @@ public:
     
     bool intersect(Ray);
     float calcSurfaceArea();
+    float calcVolume();
+    
+    //Tests if box passed in as parameter is intersects this box.
+    bool testCollision(bbox*);
+    
+    //level = level of tree. right: left = false, right = true.
+    void printBox(int level, bool right);
 };
 
 

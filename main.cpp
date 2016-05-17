@@ -123,6 +123,14 @@ makeBunny1Scene()
     
     // let objects do pre-calculations if needed
     g_scene->preCalc();
+    
+    /*printf("floor's bounding box: minC.x %f, minC.y: %f, minC.z %f\n"
+           "maxC.x %f, maxC.y %f, maxC.z %f\n", t->boundingBox->minC.x,
+           t->boundingBox->minC.y,
+           t->boundingBox->minC.z,
+           t->boundingBox->maxC.x,
+           t->boundingBox->maxC.y,
+           t->boundingBox->maxC.z);*/
 }
 
 
@@ -491,7 +499,7 @@ namespace
 
 
 
-/*void
+void
 makeSpiralScene()
 {
     g_camera = new Camera;
@@ -516,7 +524,7 @@ makeSpiralScene()
 
     // create a spiral of spheres
     Material* mat = new Lambert(Vector3(0.0f, 0.6f, 1.0f));;
-    const int maxI = 100;
+    const int maxI = 21;
     const float a = 0.15f;
     for (int i = 1; i < maxI; ++i)
     {
@@ -538,7 +546,7 @@ makeSpiralScene()
 }
 
 
-void
+/*void
 makeBunnyScene()
 {
     g_camera = new Camera;
@@ -703,15 +711,14 @@ makeTeapotScene()
 }
 */
 
-
 int
 main(int argc, char*argv[])
 {
-    Tests tester;
+    //Tests tester;
     
-    tester.testTriangleIntersection();
+    //tester.testTriangleIntersection();
     
-    // create a scene
+    //create a scene
     makeBunny1Scene();
 
     MiroWindow miro(&argc, argv);

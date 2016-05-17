@@ -3,6 +3,11 @@
 #include "Console.h"
 #include <math.h>
 
+uint BVH::numNodes = 0;
+uint BVH::numLeaves = 0;
+uint BVH::rayBoxIntersections = 0;
+uint BVH::rayTriIntersections = 0;
+
 BVH::BVH() : MAX_BINS(10) {}
 
 //function for sorting bounding boxes
@@ -118,6 +123,7 @@ BVH::build(Objects * objs)
     
     //Now make global box that encompasses all primitives.
     root = new bbox(globalMax, globalMin, objs->size(), 0);
+    numNodes++;
     //printf("number of objects in the root: %u\n", root->numObjects);
     
     //Figure out where to best split the global box using the surface area heuristic.
@@ -126,25 +132,28 @@ BVH::build(Objects * objs)
 
 void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
 {
+    box->children[0] = nullptr;
+    box->children[1] = nullptr;
+    
     //printf("In build_recursive\n");
-    printf("left index: %u, right index: %u\n", left_index, right_index);
-    printf("Depth: %u\n", depth);
+    //printf("left index: %u, right index: %u\n", left_index, right_index);
+    //printf("Depth: %u\n", depth);
+    //printf("Volume of box to potentially split: %f\n", box->calcVolume());
     //Stop when number of objects in box <= 8
-    if (box->numObjects <= 8 || depth > 20)
+    if (box->numObjects <= 8 || depth > 200)
     {
+        //printf("Stopping recursion here: num objects in leaf: %u\n", box->numObjects);
+        numLeaves++;
         //this is a leaf. Store index of first object, amount in
         box->isLeaf = true;
         box->index = left_index;
-        box->numObjects = right_index - left_index;
         //printf("8 or fewer objects in box, returning\n");
+        
         return;
     }
     
     //temporary boxes for calculating cost.
     bbox tempLeft, tempRight;
-    
-    box->children[0] = nullptr;
-    box->children[1] = nullptr;
     
     int binCount[MAX_BINS];
     
@@ -234,7 +243,7 @@ void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
         //printf("number of tris in bin %u: %u\n", temp->binID, binCount[temp->binID]);
     }
     
-    int count = 0;
+    //int count = 0;
     //for (int a = 0; a < numBins; a++)
     //{
     //    count += binCount[a];
@@ -249,9 +258,7 @@ void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
     
     float c = 0.0f;    //where lowest cost will be stored
     
-    //Go through whole list between left and right index and find a split index that has a
-    //cost less than the cost of intersecting with all the intersectables
-    //spliti is the spliting index.
+    //Go through whole list of bins and find optimal place to split.
     //IN THIS LOOP, FIND STARTING LEFT BOX WHERE THERE ARE OBJECTS, AND ENDING RIGHT BOX
     //WHERE THERE AREN'T OBJECTS AFTER (LATER)
     for(int i = 1; i < numBins; ++i)
@@ -289,16 +296,16 @@ void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
         printf("Surface area of right box: %f\n", tempRight.calcSurfaceArea());*/
         //printf("Num of objects in left box: %u\n", tempLeft.numObjects);
         //printf("Num of objects in right box: %u\n", tempRight.numObjects);
-        c = tempLeft.calcSurfaceArea() * (float)tempLeft.numObjects +
-        tempRight.calcSurfaceArea() * (float)tempRight.numObjects;
+        c = (tempLeft.calcSurfaceArea() / box->calcSurfaceArea()) * (float)tempLeft.numObjects +
+        (tempRight.calcSurfaceArea() / box->calcSurfaceArea()) * (float)tempRight.numObjects;
         
-        printf("Cost: %f\n", c);
+        //printf("Cost: %f\n", c);
         
         if( c < lowestCost || lowestCost == -1)
         {
             lowestCost = c;
             bestSplit = i;
-            printf("new lowest cost! best split: %u\n", bestSplit);
+            //printf("new lowest cost! best split: %u\n", bestSplit);
             bestAmtInLft = objsInLeft;
             //printf("Best amount of triangles in left box: %u\n", bestAmtInLft);
             
@@ -312,33 +319,71 @@ void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
         }
     }
     
-    printf("Amount of nodes in left box at best place to split: %u\n", bestAmtInLft);
+    //printf("Amount of nodes in left box at best place to split: %u\n", bestAmtInLft);
+    
+    if (lowestCost >= box->numObjects)
+    {
+        //printf("Cost of splitting is greater than cost of intersecting here. "
+        //       "Num triangles in leaf: %u\n", box->numObjects);
+        numLeaves++;
+        //this is a leaf. Store index of first object, amount in
+        box->isLeaf = true;
+        box->index = left_index;
+        
+        //delete left child and right child. Should be a leaf.
+        delete box->children[0];
+        delete box->children[1];
+        box->children[0] = nullptr;
+        box->children[1] = nullptr;
+        
+        return;
+    }
     
     float leftSwapIndex = -1;
     float rightSwapIndex = -1;
+    int leftCut = left_index;
+    int rightCut = right_index - 1;
+    
+    Object *left;
+    Object *right;
     
     //Reorder objects so ones in left child box are on left side,
     //ones in right child box are on right side. Similar to a quicksort.
-    for (int i = 0; i < bestAmtInLft; i++)
+    for (int i = leftCut; i < left_index + bestAmtInLft; i++)
     {
-        for (int j = left_index; j < left_index + bestAmtInLft; j++)
+        for (int j = leftCut; j < left_index + bestAmtInLft; j++)
         {
+            left = m_objects->at(j);
             //printf("index trying to find misplaced left tri: %u\n", j);
-            if (m_objects->at(j)->binID >= bestSplit)
+            if (left->binID >= bestSplit)
             {
+                leftCut = j;
                 leftSwapIndex = j;
                 break;
             }
+            
+            //Check if this object inside left child pushes the boundaries out.
+            box->minC.x = std::min(box->minC.x, left->boundingBox->minC.x);
+            box->minC.y = std::min(box->minC.y, left->boundingBox->minC.y);
+            box->minC.z = std::min(box->minC.z, left->boundingBox->minC.z);
         }
         
-        for (int k = right_index - 1; k >= left_index + bestAmtInLft; k--)
+        for (int k = rightCut; k >= left_index + bestAmtInLft; k--)
         {
+            right = m_objects->at(k);
+            
             //printf("index trying to find misplaced right tri: %u\n", k);
-            if (m_objects->at(k)->binID < bestSplit)
+            if (right->binID < bestSplit)
             {
+                rightCut = k;
                 rightSwapIndex = k;
                 break;
             }
+            
+            //Check if this object on right side pushes right box out.
+            box->maxC.x = std::max(box->maxC.x, right->boundingBox->maxC.x);
+            box->maxC.y = std::max(box->maxC.y, right->boundingBox->maxC.y);
+            box->maxC.z = std::max(box->maxC.z, right->boundingBox->maxC.z);
         }
         
         //test checks - should never go into first one
@@ -354,6 +399,13 @@ void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
             temp = m_objects->at(leftSwapIndex);
             m_objects->at(leftSwapIndex) = m_objects->at(rightSwapIndex);
             m_objects->at(rightSwapIndex) = temp;
+            
+            box->minC.x = std::min(box->minC.x, right->boundingBox->minC.x);
+            box->minC.y = std::min(box->minC.y, right->boundingBox->minC.y);
+            box->minC.z = std::min(box->minC.z, right->boundingBox->minC.z);
+            box->maxC.x = std::max(box->maxC.x, left->boundingBox->maxC.x);
+            box->maxC.y = std::max(box->maxC.y, left->boundingBox->maxC.y);
+            box->maxC.z = std::max(box->maxC.z, left->boundingBox->maxC.z);
         }
         
         //reset swap indices
@@ -362,13 +414,15 @@ void BVH::build_recursive(int left_index, int right_index, bbox* box, int depth)
     }
     
     //loop through every object, make sure in right place
-    for (int i = left_index; i < right_index; i++)
-    {
-        printf("bin of object %u: %u\n", i, m_objects->at(i)->binID);
-    }
+    //for (int i = left_index; i < right_index; i++)
+    //{
+    //    printf("bin of object %u: %u\n", i, m_objects->at(i)->binID);
+    //}
     
     //Recursively split.
+    numNodes++;
     build_recursive(left_index, left_index + bestAmtInLft, box->children[0], depth + 1);
+    numNodes++;
     build_recursive(left_index + bestAmtInLft, right_index, box->children[1], depth + 1);
 }
 
@@ -380,9 +434,6 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
     
     //vector being used as a stack to hold nodes that may need to be checked later.
     std::vector<bbox*> nodeStack;
-    
-    // Here you would need to traverse the BVH to perform ray-intersection
-    // acceleration. For now we just intersect every object.
 
     bool hit = false;
     HitInfo tempMinHit;
@@ -392,16 +443,25 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
     if (!currentNode->intersect(ray))
         return false;
     
+    bool intersectChildOne, intersectChildTwo;
+    
     //loop will terminate if we hit primitive or if we miss bounding box/primitive.
     while (1)
     {
+        //printf("Going to check intersections\n");
+        //printf("Done checking intersections\n");
+        
         //if not a leaf, check for intersection with both child boxes
         if (!currentNode->isLeaf)
         {
+            intersectChildOne = currentNode->children[0]->intersect(ray);
+            intersectChildTwo = currentNode->children[1]->intersect(ray);
+            
             //case: both child bounding boxes are intersected.
-            if (currentNode->children[0]->intersect(ray) &&
-                currentNode->children[1]->intersect(ray))
+            if (intersectChildOne &&
+                intersectChildTwo)
             {
+                rayBoxIntersections += 2;
                 //One farther away gets pushed onto stack and one
                 //closer is the one we will check next.
                 if (currentNode->children[0]->distFromRay >=
@@ -419,16 +479,18 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
                 }
             }
             //case: only right child is intersected
-            else if (!currentNode->children[0]->intersect(ray) &&
-               currentNode->children[1]->intersect(ray))
+            else if (!intersectChildOne &&
+               intersectChildTwo)
             {
+                rayBoxIntersections++;
                 currentNode = currentNode->children[1];
                 continue;
             }
             //case: only left child is intersected
-            else if (currentNode->children[0]->intersect(ray) &&
-                     !currentNode->children[1]->intersect(ray))
+            else if (intersectChildOne &&
+                     !intersectChildTwo)
             {
+                rayBoxIntersections++;
                 currentNode = currentNode->children[0];
                 continue;
             }
@@ -442,10 +504,13 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
             {
                 if ((*m_objects)[i]->intersect(tempMinHit, ray, tMin, tMax))
                 {
+                    rayTriIntersections++;
                     hit = true;
                     //Only update hitinfo if object we hit is closer to camera
                     if (tempMinHit.t < minHit.t)
                         minHit = tempMinHit;
+                    
+                    //printf("Hit an object!\n");
                 }
             }
             
@@ -464,16 +529,27 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
             nodeStack.pop_back();
         }
         
-        while (currentNode->distFromRay > minHit.t && !nodeStack.empty())
-        {
-            currentNode = nodeStack.back();
-            nodeStack.pop_back();
-        }
-        
         //If we make it here, we haven't already returned from a hit, and all
         //child nodes that were farther away have been tested. Therefore, there
         //was no hit, and we can return false.
         if (nodeStack.empty())
+        {
+            //printf("No intersection!\n");
             return false;
+        }
     }
+}
+
+void BVH::printBVH()
+{
+    root->printBox(1, false);
+}
+
+void BVH::printStatistics()
+{
+    printf("BVH Statistics: \n\n");
+    printf("Number of nodes: %u\n", numNodes);
+    printf("Number of leaves: %u\n", numLeaves);
+    printf("Number of ray-box intersections: %u\n", rayBoxIntersections);
+    printf("Number of ray-triangle intersections: %u\n\n", rayTriIntersections);
 }

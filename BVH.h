@@ -20,6 +20,13 @@ public:
 
     bool intersect(HitInfo& result, const Ray& ray,
                    float tMin = 0.0f, float tMax = MIRO_TMAX) const;
+    
+    //level = level of tree. child: false = left, true = right
+    void printBVH();
+    
+    void printStatistics();
+    
+    static uint numNodes, numLeaves, rayBoxIntersections, rayTriIntersections;
 
 protected:
     Objects * m_objects;

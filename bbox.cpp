@@ -69,3 +69,53 @@ float bbox::calcSurfaceArea()
     
     return 2 * (height * width) + 2 * (height * length) + 2 * (width * length);
 }
+
+float bbox::calcVolume()
+{
+    float height = maxC.y - minC.y;
+    float width = maxC.x - minC.x;
+    float length = maxC.z - minC.z;
+    
+    return length * width * height;
+}
+
+bool bbox::testCollision(bbox* other)
+{
+    if (maxC.x < other->minC.x ||
+        maxC.y < other->minC.y ||
+        maxC.z < other->minC.z ||
+        minC.x > other->maxC.x ||
+        minC.y > other->maxC.y ||
+        minC.z > other->maxC.z)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
+}
+
+void bbox::printBox(int level, bool right)
+{
+    //print the dimensions of this box
+    
+    if (!right)
+    {
+        printf("level %u, left dimensions - minC.x: %f, maxC.x: %f, minC.y: %f\n"
+               "maxC.y: %f, minC.z: %f, maxC.z: %f\n", level, minC.x, maxC.x, minC.y,
+               maxC.y, minC.z, maxC.z);
+    }
+    else
+    {
+        printf("level %u, left dimensions - minC.x: %f, maxC.x: %f, minC.y: %f\n"
+               "maxC.y: %f, minC.z: %f, maxC.z: %f\n", level, minC.x, maxC.x, minC.y,
+               maxC.y, minC.z, maxC.z);
+    }
+    
+    if (children[0] != nullptr)
+        children[0]->printBox(level + 1, false);
+    
+    if (children[1] != nullptr)
+        children[1]->printBox(level + 1, true);
+}

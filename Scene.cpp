@@ -37,6 +37,8 @@ Scene::preCalc()
     }
 
     m_bvh.build(&m_objects);
+    
+    //m_bvh.printStatistics();
 }
 
 void
@@ -67,6 +69,8 @@ Scene::raytraceImage(Camera *cam, Image *img)
     
     printf("Rendering Progress: 100.000 percent\n");
     debug("done Raytracing!\n");
+    
+    m_bvh.printStatistics();
 }
 
 bool
