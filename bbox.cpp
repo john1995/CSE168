@@ -4,6 +4,7 @@
 bbox::bbox()
 {
     objects = nullptr;
+    numObjects = 0;
 }
 
 bbox::bbox(Vector3 max, Vector3 min)
@@ -29,7 +30,7 @@ bbox::~bbox()
     delete[] objects;
 }
 
-bool bbox::intersect(Ray r)
+bool bbox::intersect(Ray r, float& tMin, float& tMax)
 {
     Vector3 t1;
     Vector3 t2;
@@ -56,10 +57,10 @@ bool bbox::intersect(Ray r)
     float t_min = std::max(tmin.x, std::max(tmin.y, tmin.z));
     float t_max = std::min(tmax.x, std::max(tmax.y, tmax.z));
     
-    if (t_min < t_max)
+    if (t_min < t_max && tMin < t_min && tMax > t_max)
     {
-        //Distance to closest plane we hit.
-        distFromRay = std::min(tmin.x, std::min(tmin.y, tmin.z));
+        tMin = t_min;
+        tMax = t_max;
         return true;
     }
     else
@@ -86,14 +87,14 @@ float bbox::calcVolume()
     return length * width * height;
 }
 
-bool bbox::testCollision(bbox* other)
+bool bbox::testCollision(Vector3 minCorner, Vector3 maxCorner)
 {
-    if (maxC.x < other->minC.x ||
-        maxC.y < other->minC.y ||
-        maxC.z < other->minC.z ||
-        minC.x > other->maxC.x ||
-        minC.y > other->maxC.y ||
-        minC.z > other->maxC.z)
+    if (maxC.x < minCorner.x ||
+        maxC.y < minCorner.y ||
+        maxC.z < minCorner.z ||
+        minC.x > maxCorner.x ||
+        minC.y > maxCorner.y ||
+        minC.z > maxCorner.z)
     {
         return false;
     }
@@ -103,11 +104,11 @@ bool bbox::testCollision(bbox* other)
     }
 }
 
-void bbox::printBox(int level, bool right)
+void bbox::printBox(int level, bool rt)
 {
     //print the dimensions of this box
     
-    if (!right)
+    if (!rt)
     {
         printf("level %u, left dimensions - minC.x: %f, maxC.x: %f, minC.y: %f\n"
                "maxC.y: %f, minC.z: %f, maxC.z: %f\n", level, minC.x, maxC.x, minC.y,
@@ -120,11 +121,11 @@ void bbox::printBox(int level, bool right)
                maxC.y, minC.z, maxC.z);
     }
     
-    if (children[0] != nullptr)
-        children[0]->printBox(level + 1, false);
+    if (left != nullptr)
+        left->printBox(level + 1, false);
     
-    if (children[1] != nullptr)
-        children[1]->printBox(level + 1, true);
+    if (right != nullptr)
+        right->printBox(level + 1, true);
 }
 
 void bbox::drawNode()
@@ -154,10 +155,10 @@ void bbox::drawNode()
     glVertex3f(minC.x, minC.y, maxC.z);
     glEnd();
     
-    if (children[0] != nullptr)
-        children[0]->drawNode();
+    if (left != nullptr)
+        left->drawNode();
     
-    if (children[1] != nullptr)
-        children[1]->drawNode();
+    if (right != nullptr)
+        right->drawNode();
     
 }

@@ -47,7 +47,8 @@ MiroWindow::MiroWindow(int * argc, char* argv[]) :
     glutCreateWindow("miro");
 
     // Initialize some OpenGL state
-    glClearColor(0.25f, 0.25f, 0.25f, 1);
+    //clear color was initially 0.25, 0.25, 0.25
+    glClearColor(0.0f, 0.0f, 0.0f, 1);
     glDisable(GL_LIGHTING);
     glDisable(GL_TEXTURE_2D);
     glShadeModel(GL_SMOOTH);

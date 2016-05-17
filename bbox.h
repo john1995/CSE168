@@ -15,10 +15,11 @@ public:
     Vector3   minC;
     Vector3   maxC;
     Object** objects;
-    bbox* children[2];  //each box only allowed two children, so can optimize.
+    bbox *left, *right;
     bool isLeaf;
-    float distFromRay;
     unsigned int numObjects;
+    int axis;
+    float plane_pos;
     
     bbox();
     bbox(Vector3, Vector3);
@@ -26,16 +27,16 @@ public:
     bbox(bbox&);     //copy constructor
     ~bbox();
     
-    bool intersect(Ray);
+    bool intersect(Ray, float& t_min, float& t_max);
     float calcSurfaceArea();
     float calcVolume();
     
     //Tests if box passed in as parameter is intersects this box.
-    bool testCollision(bbox*);
+    bool testCollision(Vector3 minCorner, Vector3 maxCorner);
     void drawNode();
     
     //level = level of tree. right: left = false, right = true.
-    void printBox(int level, bool right);
+    void printBox(int level, bool rt);
 };
 
 
