@@ -57,10 +57,8 @@ bool bbox::intersect(Ray r, float& tMin, float& tMax)
     float t_min = std::max(tmin.x, std::max(tmin.y, tmin.z));
     float t_max = std::min(tmax.x, std::max(tmax.y, tmax.z));
     
-    if (t_min < t_max && tMin < t_min && tMax > t_max)
+    if (t_min < t_max)
     {
-        tMin = t_min;
-        tMax = t_max;
         return true;
     }
     else
