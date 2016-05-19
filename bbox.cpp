@@ -69,6 +69,15 @@ bool bbox::intersect(Ray r, float& tMin, float& tMax)
     }
 }
 
+void bbox::copy(bbox* other)
+{
+    numObjects = other->numObjects;
+    axis = other->axis;
+    plane_pos = other->plane_pos;
+    minC = other->minC;
+    maxC = other->maxC;
+}
+
 float bbox::calcSurfaceArea()
 {
     float height = maxC.y - minC.y;
@@ -87,14 +96,14 @@ float bbox::calcVolume()
     return length * width * height;
 }
 
-bool bbox::testCollision(Vector3 minCorner, Vector3 maxCorner)
+bool bbox::testCollision(bbox* other)
 {
-    if (maxC.x < minCorner.x ||
-        maxC.y < minCorner.y ||
-        maxC.z < minCorner.z ||
-        minC.x > maxCorner.x ||
-        minC.y > maxCorner.y ||
-        minC.z > maxCorner.z)
+    if (maxC.x < other->minC.x ||
+        maxC.y < other->minC.y ||
+        maxC.z < other->minC.z ||
+        minC.x > other->maxC.x ||
+        minC.y > other->maxC.y ||
+        minC.z > other->maxC.z)
     {
         return false;
     }

@@ -161,9 +161,17 @@ void BVH::splitNode(bbox* box, int depth)
         return;
     }
     
-    unsigned int objsInLeft, objsInRight;
-    Vector3 toSplitPlane;
+    bbox* tempL = new bbox();
+    bbox* tempR = new bbox();
+    bbox* bestL = new bbox();
+    bbox* bestR = new bbox();
+    float bestPlanePos = 0.0f;
+    
     Plane *splitPlane;
+    tempL->minC = box->minC;
+    tempL->maxC = box->maxC;
+    tempR->minC = box->minC;
+    tempR->maxC = box->maxC;
     
     
     //calculate the largest dimension of this bounding box. Will determine which
@@ -213,95 +221,73 @@ void BVH::splitNode(bbox* box, int depth)
             //find length of potential box in x direction
             float xCoord = (xLength / MAX_BINS) * i + box->minC.x;
             box->plane_pos = xCoord;
-            splitPlane->point = Vector3(xCoord, box->maxC.y, box->maxC.z);
-            toSplitPlane = Vector3(xCoord - box->minC.x, 0.0f, 0.0f);
+            splitPlane->point = Vector3(xCoord, 0.0f, 0.0f);
+            tempL->maxC.x = xCoord;
+            tempR->minC.x = xCoord;
         }
         else if (box->axis == 1)   //longest dimension is y
         {
             //find length of potential box in y direction
             float yCoord = (yLength / MAX_BINS) * i + box->minC.y;
             box->plane_pos = yCoord;
-            splitPlane->point = Vector3(box->maxC.x, yCoord, box->maxC.z);
-            toSplitPlane = Vector3(0.0f, yCoord - box->minC.y, 0.0f);
+            splitPlane->point = Vector3(0.0f, yCoord, 0.0f);
+            tempL->maxC.y = yCoord;
+            tempR->minC.y = yCoord;
         }
         else    //longest dimension is z
         {
             //find length of potential box in z direction
             float zCoord = (zLength / MAX_BINS) * i + box->minC.z;
             box->plane_pos = zCoord;
-            splitPlane->point = Vector3(box->maxC.x, box->maxC.y, zCoord);
-            toSplitPlane = Vector3(0.0f, 0.0f, zCoord - box->minC.z);
+            splitPlane->point = Vector3(0.0f, 0.0f, zCoord);
+            tempL->maxC.z = zCoord;
+            tempR->minC.z = zCoord;
         }
-        
-        objsInLeft = 0;
-        objsInRight = 0;
         
         //determine if the objects in this box intersect with the left child and/or the right
         //child.
         for (int i = 0; i < box->numObjects; i++)
         {
-            intersectLeft =
-            box->objects[i]->boundingBox->testCollision(box->minC, splitPlane->point);
-            intersectRight =
-            box->objects[i]->boundingBox->testCollision(box->minC + toSplitPlane,
-                                                        box->maxC);
+            intersectLeft = box->objects[i]->boundingBox->testCollision(tempL);
+            intersectRight = box->objects[i]->boundingBox->testCollision(tempR);
             
             if (intersectLeft && intersectRight)
             {
-                objsInLeft++;
-                objsInRight++;
+                tempL->numObjects++;
+                tempR->numObjects++;
             }
             else if (intersectLeft)
             {
-                objsInLeft++;
+                tempL->numObjects++;
             }
             else if (intersectRight)
             {
-                objsInRight++;
+                tempR->numObjects++;
             }
         }
+        //printf("num objects in left: %u\n", tempL->numObjects);
+        //printf("num objects in right: %u\n", tempR->numObjects);
         
-        saLeft = calcSurfaceArea(box->minC, splitPlane->point);
-        saRight = calcSurfaceArea(box->minC + toSplitPlane, box->maxC);
-        saParent = calcSurfaceArea(box->minC, box->maxC);
+        saLeft = tempL->calcSurfaceArea();
+        saRight = tempR->calcSurfaceArea();
+        saParent = box->calcSurfaceArea();
     
-        c = (saLeft / saParent) * (float)objsInLeft + (saRight / saParent) * (float)objsInRight;
+        c = (saLeft / saParent) * tempL->numObjects + (saRight / saParent) * tempR->numObjects;
         
         //update children and cost if lower than current lowest.
         if( c < lowestCost || lowestCost == -1)
         {
             lowestCost = c;
+            bestPlanePos = box->plane_pos;
             
-            //delete old left child and right child
-            delete box->left;
-            delete box->right;
-            
-            //create new best potential candidate bounding boxes
-            box->left = new bbox(splitPlane->point, box->minC, objsInLeft);
-            box->right = new bbox(box->maxC, box->minC + toSplitPlane, objsInRight);
+            bestL->copy(tempL);
+            //printf("bestL numObjects: %u\n", bestL->numObjects);
+            bestR->copy(tempR);
+            //printf("bestR numObjects: %u\n", bestR->numObjects);
         }
     }
     
-    //at this point, have found best split.
-    
-    int lCounter = 0;
-    int rCounter = 0;
-    //loop through every object in box we are splitting, see which child it falls in to
-    for (int i = 0; i < box->numObjects; i++)
-    {
-        if (box->left->testCollision(box->objects[i]->boundingBox->minC,
-                                     box->objects[i]->boundingBox->maxC))
-        {
-            box->left->objects[lCounter++] = box->objects[i];
-        }
-        
-        if (box->right->testCollision(box->objects[i]->boundingBox->minC,
-                                      box->objects[i]->boundingBox->maxC))
-        {
-            box->right->objects[rCounter++] = box->objects[i];
-        }
-    }
-    
+    //Check if split is worth it.
     if (lowestCost >= box->numObjects)
     {
         //printf("Cost of splitting is greater than cost of intersecting here. "
@@ -313,12 +299,34 @@ void BVH::splitNode(bbox* box, int depth)
         //printf("At leaf, depth = %u\n", depth);
         
         //delete left child and right child. Should be a leaf.
-        delete box->left;
-        delete box->right;
         box->left = nullptr;
         box->right = nullptr;
         
         return;
+    }
+    
+    //At this point, have found best split, and know splitting is worth it. Create child boxes.
+    box->left = new bbox(*bestL);
+    box->right = new bbox(*bestR);
+    
+    //printf("box->left numObjects: %u\n", box->left->numObjects);
+    //printf("box->right numObjects: %u\n", box->right->numObjects);
+    box->plane_pos = bestPlanePos;
+    
+    int lCounter = 0;
+    int rCounter = 0;
+    //loop through every object in box we are splitting, see which child it falls in to
+    for (int i = 0; i < box->numObjects; i++)
+    {
+        if (box->left->testCollision(box->objects[i]->boundingBox))
+        {
+            box->left->objects[lCounter++] = box->objects[i];
+        }
+        
+        if (box->right->testCollision(box->objects[i]->boundingBox))
+        {
+            box->right->objects[rCounter++] = box->objects[i];
+        }
     }
     
     //Recursively split.
@@ -341,6 +349,10 @@ void BVH::splitNode(bbox* box, int depth)
     }
     
     delete splitPlane;
+    delete tempL;
+    delete tempR;
+    delete bestL;
+    delete bestR;
 }
 
 bool
@@ -356,19 +368,21 @@ BVH::intersect(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
     if (!currentNode->intersect(ray, tMin, tMax))
         return false;
     else
-        return intersectNode(root, minHit, ray, tMin, tMax);
+        return intersectNode(root, minHit, ray, tMin, tMax, 0);
     
 }
 
-bool BVH::intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min, float t_max) const
+bool BVH::intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min, float t_max,
+                        int depth) const
 {
     bbox *near, *far;
     Plane* splitPlane;
     HitInfo planeInfo;
-    int depth = 0;
     bool hit = false;
     HitInfo tempMinHit;
     minHit.t = t_max;
+    //printf("top of intersectNode, level %u\n", depth);
+    //printf("Plane position of box: %f\n", box->plane_pos);
     
     if (box->axis == 0)
         splitPlane = new Plane(Vector3(1.0f, 0.0f, 0.0f),
@@ -383,6 +397,7 @@ bool BVH::intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min,
     //if not a leaf, check for intersection with both child boxes
     if (!box->isLeaf)
     {
+        //printf("Box is not a leaf\n");
         if (ray.d[box->axis] > 0)
         {
             near = box->left;
@@ -394,32 +409,31 @@ bool BVH::intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min,
             far = box->left;
         }
         
-        if (splitPlane->intersect(planeInfo, ray))
-            printf("Distance to plane: %f\n", planeInfo.t);
-        else
-            printf("Didn't intersect plane\n");
-        
+        splitPlane->intersect(planeInfo, ray);
         if (planeInfo.t > t_max)
         {
             rayBoxIntersections++;
-            intersectNode(near, minHit, ray, t_min, t_max);
+            return intersectNode(near, minHit, ray, t_min, t_max, depth + 1);
         }
         else if (planeInfo.t < t_min)
         {
             rayBoxIntersections++;
-            intersectNode(far, minHit, ray, t_min, t_max);
+            return intersectNode(far, minHit, ray, t_min, t_max, depth + 1);
         }
         else
         {
             rayBoxIntersections += 2;
-            intersectNode(near, minHit, ray, t_min, planeInfo.t);
-            intersectNode(far, minHit, ray, planeInfo.t, t_max);
+            if (intersectNode(near, minHit, ray, t_min, planeInfo.t, depth + 1))
+                return true;
+            else
+                return intersectNode(far, minHit, ray, planeInfo.t, t_max, depth + 1);
         }
     }
     else
     {
-        //printf("intersected a leaf! Level: %u\n", depth);
+        //printf("intersected a leaf! Level: %u, numObjects in leaf: %u\n", depth, box->numObjects);
         depth--;
+        
         //We have reached a leaf. Check primitives inside.
         for (int i = 0; i < box->numObjects; i++)
         {
@@ -429,23 +443,28 @@ bool BVH::intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min,
                 hit = true;
                 //Only update hitinfo if object we hit is closer to camera
                 if (tempMinHit.t < minHit.t)
+                {
                     minHit = tempMinHit;
                 
-                //printf("Hit an object!\n");
+                    //printf("Hit an object!\n");
+                }
             }
         }
+        
+        delete splitPlane;
         
         if (hit && minHit.t < t_max)
         {
             //we hit something and know its the closest primitive in the box,
             //so return true
+            //printf("returning true\n");
             return true;
         }
         else
             return false;
     }
     
-    return false;
+    delete splitPlane;
 }
 
 float BVH::calcSurfaceArea(Vector3 minC, Vector3 maxC)

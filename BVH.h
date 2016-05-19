@@ -21,7 +21,8 @@ public:
 
     bool intersect(HitInfo& result, const Ray& ray,
                    float tMin = 0.0f, float tMax = MIRO_TMAX) const;
-    bool intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min, float t_max) const;
+    bool intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min, float t_max,
+                       int depth) const;
     
     float calcSurfaceArea(Vector3 minC, Vector3 maxC);
     

@@ -31,8 +31,11 @@ public:
     float calcSurfaceArea();
     float calcVolume();
     
+    //copy attributes of one box into another
+    void copy(bbox*);
+    
     //Tests if box passed in as parameter is intersects this box.
-    bool testCollision(Vector3 minCorner, Vector3 maxCorner);
+    bool testCollision(bbox* other);
     void drawNode();
     
     //level = level of tree. right: left = false, right = true.
