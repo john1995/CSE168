@@ -51,10 +51,32 @@ makeTeapotScene()
     light->setWattage(700);
     g_scene->addLight(light);
     
-    Material* material = new Lambert(Vector3(1.0f));
+    StoneMat* material = new StoneMat();
+    Mirror* glass = new Mirror();
     TriangleMesh * teapot = new TriangleMesh;
     teapot->load("teapot.obj");
-    addMeshTrianglesToScene(teapot, material);
+    addMeshTrianglesToScene(teapot, glass);
+    
+    
+    
+    
+    ///make more objects
+    TriangleMesh * mesh;
+    Matrix4x4 xform;
+    Matrix4x4 xform2;
+    xform2 *= rotate(110, 0, 1, 0);
+    //xform2 *= scale(.6, 1, 1.1);
+    
+    
+    // bunny 1
+    xform.setIdentity();
+    //xform *= scale(0.3, 2.0, 0.7);
+    xform *= translate(3, 0, 1);
+    xform *= rotate(25, .3, .1, .6);
+    mesh = new TriangleMesh;
+    mesh->load("teapot.obj", xform);
+    addMeshTrianglesToScene(mesh, material);
+    
     
     // create the floor triangle
     TriangleMesh * floor = new TriangleMesh;
@@ -719,8 +741,9 @@ main(int argc, char*argv[])
     //tester.testTriangleIntersection();
     
     //create a scene
-    makeTeapotScene();
-    
+    //makeSponzaScene();
+    //makeTeapotScene();
+    makeBunny20Scene();
     MiroWindow miro(&argc, argv);
 
     miro.mainLoop();

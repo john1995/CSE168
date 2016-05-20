@@ -47,15 +47,15 @@ Lambert::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         //shadow_ray.o = hit.P;
         //shadow_ray.d = l;
         
-        //if (scene.trace(hi, shadow_ray, 0.001f, sqrt(falloff)))
-        //{
+        if (scene.trace(hi, shadow_ray, 0.001f, sqrt(falloff)))
+        {
             // We are in shadow
-        //}
-        //else
-        //{
+        }
+        else
+        {
             //Should be a 4.0 factor in PI * falloff, but image is too dark
             L += std::max(0.0f, (nDotL * pLight->wattage()) / (PI * falloff)) * result;
-        //}
+        }
     }
     
     // add the ambient component
