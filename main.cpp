@@ -52,6 +52,8 @@ makeTeapotScene()
     g_scene->addLight(light);
     
     StoneMat* material = new StoneMat();
+    Glass* material2 = new Glass();
+    material2->setBackgroundColor(Vector3(0.0f, 0.0f, 0.2f));
     Mirror* glass = new Mirror();
     TriangleMesh * teapot = new TriangleMesh;
     teapot->load("teapot.obj");
@@ -68,7 +70,7 @@ makeTeapotScene()
     //xform2 *= scale(.6, 1, 1.1);
     
     
-    // bunny 1
+    // teapot 1
     xform.setIdentity();
     //xform *= scale(0.3, 2.0, 0.7);
     xform *= translate(3, 0, 1);
@@ -76,6 +78,16 @@ makeTeapotScene()
     mesh = new TriangleMesh;
     mesh->load("teapot.obj", xform);
     addMeshTrianglesToScene(mesh, material);
+    
+    
+    // teapot 2
+    xform.setIdentity();
+    //xform *= scale(0.3, 2.0, 0.7);
+    xform *= translate(-3, 0, 1);
+    xform *= rotate(25, .3, .1, .6);
+    mesh = new TriangleMesh;
+    mesh->load("teapot.obj", xform);
+    addMeshTrianglesToScene(mesh, material2);
     
     
     // create the floor triangle
@@ -742,8 +754,8 @@ main(int argc, char*argv[])
     
     //create a scene
     //makeSponzaScene();
-    //makeTeapotScene();
-    makeBunny20Scene();
+    makeTeapotScene();
+    //makeBunny20Scene();
     MiroWindow miro(&argc, argv);
 
     miro.mainLoop();

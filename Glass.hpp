@@ -18,7 +18,7 @@ public:
     //constructor takes transmission coefficient k_t, absporption coefficient k_d,
     //and reflection coefficient k_s. k_t + k_d + k_s = 1
     Glass(float kt, float kd, float ks);
-    
+    Glass();
     virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
     

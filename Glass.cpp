@@ -15,6 +15,7 @@ Glass::Glass(float kt, float kd, float ks) :
 {
     
 }
+Glass::Glass(){}
 
 void Glass::setBackgroundColor(const Vector3 color)
 {
@@ -43,7 +44,7 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         
         reflected = ray.d - 2.0f * (dot(hit.N, ray.d)) * hit.N;
         
-        if (ray.numBounces < maxBounces)
+        if (ray.numBounces < 0)
         {
             //trace from reflected vector now
             Ray reflect(ray.numBounces + 1);
@@ -75,11 +76,11 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         //Check to see if refraction is coming into material or out of it
         if(dot(hit.N,ray.d) < 0){
             n1 = 1.0f;
-            n2 = 1.0f;
+            n2 = 2.5f;
             No = hit.N;
         }
         else{
-            n1 = 1.0f;
+            n1 = 2.5f;
             n2 = 1.0f;
             Vector3 neg = Vector3(-1,-1,-1);
             No = -1 * hit.N;
