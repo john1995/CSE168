@@ -3,8 +3,15 @@
 #include "Camera.h"
 #include "Image.h"
 #include "Console.h"
+#include <random>
+#include "photonmap.h"
 
 Scene * g_scene = 0;
+
+
+std::default_random_engine generator;
+std::uniform_real_distribution<float> distribution(-1, 1);
+std::uniform_real_distribution<float> distribution2(0, 1);
 
 void
 Scene::openGL(Camera *cam)
@@ -45,9 +52,13 @@ Scene::preCalc()
 void
 Scene::raytraceImage(Camera *cam, Image *img)
 {
-    Ray ray;
+    Ray ray,photray;
     HitInfo hitInfo;
     Vector3 shadeResult;
+    float r1 = distribution(generator);
+    float r2 = distribution(generator);
+    float r3 = distribution(generator);
+
     
     // loop over all pixels in the image
     for (int j = 0; j < img->height(); ++j)
@@ -67,6 +78,46 @@ Scene::raytraceImage(Camera *cam, Image *img)
         printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
         fflush(stdout);
     }
+    float x;
+    float y;
+    float z;
+    int numPhotons = 0;
+    while (numPhotons < 1000) {
+        do{
+            x = distribution(generator);
+            y = distribution(generator);
+            z = distribution(generator);
+        }while((x*x + y*y + z*z)> 1.0f);
+         
+        const Lights *lightlist = lights();
+        PointLight * pLight = *(lightlist->begin());
+        Vector3 lightpos = pLight->position();
+        photray.d = Vector3(x,y,z);
+        photray.o = lightpos;
+        HitInfo phothit;
+        Photon photon;
+        
+        if (trace(phothit, ray))
+        {
+            
+        }
+        numPhotons += 1;
+        
+        photon.pos[0] = phothit.P.x;
+        photon.pos[1] = phothit.P.y;
+        photon.pos[2] = phothit.P.z;
+        photon.power[0] = pLight->wattage();
+        photon.power[1] = pLight->wattage();
+        photon.power[2] = pLight->wattage();
+
+        //Russian roulette
+        
+        
+        
+        
+    }
+    
+    
     
     printf("Rendering Progress: 100.000 percent\n");
     debug("done Raytracing!\n");
