@@ -8,6 +8,7 @@ class Material
 {
 public:
     Material();
+    Material(Vector3,Vector3);
     virtual ~Material();
 
     virtual void preCalc() {}
@@ -16,6 +17,12 @@ public:
      * so the number of bounces of a ray could be modified */
     virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
+    
+
+    
+    Vector3 k_d;
+    Vector3 k_s;
+    //Vector3 k_a;
 };
 
 #endif // CSE168_MATERIAL_H_INCLUDED

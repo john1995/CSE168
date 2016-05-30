@@ -4,7 +4,7 @@
 #include <algorithm>
 
 Lambert::Lambert(const Vector3 & kd, const Vector3 & ka) :
-    m_kd(kd), m_ka(ka)
+    Material(kd,Vector3(0.0f)), k_a(ka)
 {
 
 }
@@ -39,7 +39,7 @@ Lambert::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         // get the diffuse component
         float nDotL = dot(hit.N, l);
         Vector3 result = pLight->color();
-        result *= m_kd;
+        result *= k_d;
         
         Ray shadow_ray(0);
         HitInfo hi;
@@ -59,7 +59,7 @@ Lambert::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
     }
     
     // add the ambient component
-    L += m_ka;
+    L += k_a;
     
     return L;
 }

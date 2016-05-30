@@ -11,7 +11,7 @@
 #include "Scene.h"
 
 Specular::Specular(const Vector3 & ks, const float exp) :
-            k_s(ks), shinyExp(exp)
+            Material(Vector3(0),ks), shinyExp(exp)
 {
     
 }

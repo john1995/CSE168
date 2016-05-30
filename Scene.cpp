@@ -57,9 +57,7 @@ Scene::raytraceImage(Camera *cam, Image *img)
     Vector3 shadeResult;
     float r1 = distribution(generator);
     float r2 = distribution(generator);
-    float r3 = distribution(generator);
 
-    
     // loop over all pixels in the image
     for (int j = 0; j < img->height(); ++j)
     {
@@ -78,6 +76,94 @@ Scene::raytraceImage(Camera *cam, Image *img)
         printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
         fflush(stdout);
     }
+
+    // loop over all pixels in the image
+    /*for (int j = 0; j < img->height(); ++j)
+    {
+        for (int i = 0; i < img->width(); ++i)
+        {
+            ray = cam->eyeRay(i, j, img->width(), img->height());
+            ray.numBounces = 0;
+            if (trace(hitInfo, ray))
+            {
+                shadeResult = hitInfo.material->shade(ray, hitInfo, *this);
+                float focusPoint = 0.2f;
+                
+                
+                for(int k = 0; k < 16; k++){
+                    
+                    float r3 = distribution(generator);
+                    float r4 = distribution(generator);
+                    
+                    float dx =  ( (r3) * 3.0f * (1.0f/(float)img->width())) - 0.5f;
+                    float dy =  ( (r4) * 3.0f * (1.0f/(float)img->height())) - 0.5f;
+                    Vector3 P = Vector3(0,0,0) + focusPoint * ray.d;
+                    Vector3 dir = P - Vector3(dx, dy, 0.0f);
+                    //ray.o = Vector3(dx,dy,0.0f);
+                    //ray.d = dir;
+                    ray  = Ray(Vector3(dx,dy,0.0f), dir);
+                    shadeResult += hitInfo.material->shade(ray, hitInfo, *this);
+                    
+                    //img->setPixel(i, j, shadeResult);
+            }
+
+                shadeResult = shadeResult * 1.0f/16.0f;
+                img->setPixel(i, j, shadeResult);
+            //Ray cameraSpaceRay;
+            //cameraSpaceRay.d = Vector3(px, py, 1.0f);
+            //ray.d = cameraSpaceRay.d;
+            
+
+      
+            }
+            
+       
+            
+            
+        }
+        img->drawScanline(j);
+        glFinish();
+        printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
+        fflush(stdout);
+    }*/
+    // loop over all pixels in the image
+    /*for (int j = 0; j < img->height(); ++j)
+    {
+        for (int i = 0; i < img->width(); ++i)
+        {
+            ray = cam->eyeRay(i, j, img->width(), img->height());
+            ray.numBounces = 0;
+            int focaldistance = 2;
+            float focusPoint = 2.0f;
+            
+                
+            for(int k = 0; k < 16; k++){
+                if (trace(hitInfo, ray))
+                {
+                    float r3 = distribution(generator);
+                    float r4 = distribution(generator);
+            
+                    float dx =  ( (r3) * 3.0f * (float)img->width()) - 0.5f;
+                    float dy =  ( (r4) * 3.0f * (float)img->height()) - 0.5f;
+                    Vector3 P = Vector3(0,0,0) + focusPoint * ray.d;
+                    Vector3 dir = P - Vector3(dx, dy, 0.0f);
+                    ray.o = Vector3(dx,dy,0.0f);
+                    ray.d = dir;
+                    shadeResult += hitInfo.material->shade(ray, hitInfo, *this);
+                }
+                
+            }
+            
+            shadeResult = shadeResult * 1.0f/16.0f;
+            img->setPixel(i, j, shadeResult);
+            
+        }
+        
+        img->drawScanline(j);
+        glFinish();
+        printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
+        fflush(stdout);
+    }*/
     float x;
     float y;
     float z;
@@ -111,6 +197,32 @@ Scene::raytraceImage(Camera *cam, Image *img)
         photon.power[2] = pLight->wattage();
 
         //Russian roulette
+        float dr =  phothit.material->k_d.x;
+        float dg =  phothit.material->k_d.y;
+        float db =  phothit.material->k_d.z;
+        float sr =  phothit.material->k_s.x;
+        float sg =  phothit.material->k_s.y;
+        float sb =  phothit.material->k_s.z;
+
+        float Pr = std::max(dr+sr, std::max(dg+sg, db+sb));
+        float Pd = ( (dr+dg+db)/(dr+dg+db+sr+sg+sb) ) * Pr;
+        float Ps = Pr - Pd;
+        float dec = distribution2(generator);
+        
+        //diffuse reflection
+        if(dec<Pd){
+            
+        }
+        //specular reflection
+        else if( dec < Ps + Pd){
+            
+        }
+        //Absortion
+        else{
+            
+        }
+
+        
         
         
         

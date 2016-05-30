@@ -3,7 +3,11 @@
 Material::Material()
 {
 }
+Material::Material(Vector3 kd, Vector3 ks):
+k_d(kd), k_s(ks)
+{
 
+}
 Material::~Material()
 {
 }

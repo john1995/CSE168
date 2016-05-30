@@ -10,8 +10,8 @@
 #include "Ray.h"
 #include "Scene.h"
 
-Glass::Glass(float kt, float kd, float ks) :
-    k_d(kd), k_s(ks), k_t(kt)
+Glass::Glass( float kd, float ks) :
+    k_d(kd), k_s(ks)
 {
     
 }

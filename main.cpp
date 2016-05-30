@@ -38,7 +38,7 @@ makeTeapotScene()
     g_image->resize(512, 512);
     
     // set up the camera
-    g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
+    g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.5f));
     g_camera->setEye(Vector3(0, 3, 6));
     g_camera->setLookAt(Vector3(0, 0, 0));
     g_camera->setUp(Vector3(0, 1, 0));
@@ -51,9 +51,10 @@ makeTeapotScene()
     light->setWattage(700);
     g_scene->addLight(light);
     
-    StoneMat* material = new StoneMat();
+    Material* material = new Lambert(Vector3(1.0));
+    //StoneMat* material = new StoneMat();
     Glass* material2 = new Glass();
-    material2->setBackgroundColor(Vector3(0.0f, 0.0f, 0.2f));
+    material2->setBackgroundColor(Vector3(0.0f, 0.0f, 0.5f));
     Mirror* glass = new Mirror();
     TriangleMesh * teapot = new TriangleMesh;
     teapot->load("teapot.obj");

@@ -34,7 +34,7 @@ public:
                           const Scene& scene) const;
     
 protected:
-    Vector3 k_s;            //specular reflection coefficient
+    //Vector3 k_s;            //specular reflection coefficient
     float shinyExp;         //shininess exponent
     
     Vector3 bgColor;        //background color needed for refraction

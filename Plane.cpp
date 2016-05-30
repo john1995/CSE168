@@ -14,7 +14,7 @@ bool Plane::intersect(HitInfo& result, const Ray& ray,
     float angle = dot(normal, ray.d);
     if (angle == 0)
     {
-        printf("Ray is parallel to the plane\n");
+        //printf("Ray is parallel to the plane\n");
         return false;   //parallel to plane
     }
     

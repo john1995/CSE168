@@ -10,19 +10,19 @@ public:
             const Vector3 & ka = Vector3(0));
     virtual ~Lambert();
 
-    const Vector3 & kd() const {return m_kd;}
-    const Vector3 & ka() const {return m_ka;}
+    const Vector3 & getkd() const {return k_d;}
+    const Vector3 & getka() const {return k_a;}
 
-    void setKd(const Vector3 & kd) {m_kd = kd;}
-    void setKa(const Vector3 & ka) {m_ka = ka;}
+    void setKd(const Vector3 & kd) {k_d = kd;}
+    void setKa(const Vector3 & ka) {k_a = ka;}
 
     virtual void preCalc() {}
     
     virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
 protected:
-    Vector3 m_kd;
-    Vector3 m_ka;
+    
+    Vector3 k_a;
 };
 
 #endif // CSE168_LAMBERT_H_INCLUDED
