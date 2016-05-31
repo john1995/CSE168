@@ -6,12 +6,16 @@
 #include "Scene.h"
 #include "Console.h" 
 #include "OpenGL.h"
+//#include <random>
 
 Camera * g_camera = 0;
 
 static bool firstRayTrace = true; 
 
 const float HalfDegToRad = DegToRad/2.0f;
+
+//std::default_random_engine generator;
+//std::uniform_real_distribution<float> distribution(-1, 1);
 
 Camera::Camera() :
     m_bgColor(0,0,0),
@@ -124,8 +128,18 @@ Camera::eyeRay(int x, int y, int imageWidth, int imageHeight)
     // transform x and y into camera space 
     // -----------------------------------
 
-    const float imPlaneUPos = left   + (right - left)*(((float)x+0.5f)/(float)imageWidth); 
-    const float imPlaneVPos = bottom + (top - bottom)*(((float)y+0.5f)/(float)imageHeight); 
+     float imPlaneUPos = left   + (right - left)*(((float)x+0.5f)/(float)imageWidth);
+     float imPlaneVPos = bottom + (top - bottom)*(((float)y+0.5f)/(float)imageHeight);
 
-    return Ray(m_eye, (imPlaneUPos*uDir + imPlaneVPos*vDir - wDir).normalize());
+    
+    float apertureRadius = 0.2f;
+    
+    float xApertureRadius = imPlaneUPos*apertureRadius;
+    float yApertureRadius = imPlaneVPos*apertureRadius;
+    float R1 = (static_cast<float>(rand() % RAND_MAX) / RAND_MAX) * 2.0f - 1.0f;
+    float R2 = (static_cast<float>(rand() % RAND_MAX) / RAND_MAX) * 2.0f - 1.0f;
+
+    Vector3 newRandomisedEyePoint = m_eye + R1*xApertureRadius + R2*yApertureRadius;
+    
+    return Ray(newRandomisedEyePoint, (2.0f * (imPlaneUPos*uDir + imPlaneVPos*vDir - wDir).normalize()));
 }

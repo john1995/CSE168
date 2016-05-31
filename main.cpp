@@ -74,7 +74,7 @@ makeTeapotScene()
     // teapot 1
     xform.setIdentity();
     //xform *= scale(0.3, 2.0, 0.7);
-    xform *= translate(3, 0, 1);
+    xform *= translate(1, 0, 3);
     xform *= rotate(25, .3, .1, .6);
     mesh = new TriangleMesh;
     mesh->load("teapot.obj", xform);
@@ -84,7 +84,7 @@ makeTeapotScene()
     // teapot 2
     xform.setIdentity();
     //xform *= scale(0.3, 2.0, 0.7);
-    xform *= translate(-3, 0, 1);
+    xform *= translate(1, 0, -3);
     xform *= rotate(25, .3, .1, .6);
     mesh = new TriangleMesh;
     mesh->load("teapot.obj", xform);

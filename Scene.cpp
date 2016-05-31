@@ -55,11 +55,11 @@ Scene::raytraceImage(Camera *cam, Image *img)
     Ray ray,photray;
     HitInfo hitInfo;
     Vector3 shadeResult;
-    float r1 = distribution(generator);
-    float r2 = distribution(generator);
+    float r1 = distribution2(generator);
+    float r2 = distribution2(generator);
 
     // loop over all pixels in the image
-    for (int j = 0; j < img->height(); ++j)
+    /*for (int j = 0; j < img->height(); ++j)
     {
         for (int i = 0; i < img->width(); ++i)
         {
@@ -75,7 +75,7 @@ Scene::raytraceImage(Camera *cam, Image *img)
         glFinish();
         printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
         fflush(stdout);
-    }
+    }*/
 
     // loop over all pixels in the image
     /*for (int j = 0; j < img->height(); ++j)
@@ -87,36 +87,38 @@ Scene::raytraceImage(Camera *cam, Image *img)
             if (trace(hitInfo, ray))
             {
                 shadeResult = hitInfo.material->shade(ray, hitInfo, *this);
-                float focusPoint = 0.2f;
+                
+                float focusPoint = 2.0f;
                 
                 
                 for(int k = 0; k < 16; k++){
                     
-                    float r3 = distribution(generator);
-                    float r4 = distribution(generator);
+                    float r3 = (static_cast<float>(rand() % RAND_MAX) / RAND_MAX) * 2.0f - 1.0f;
+                    float r4 = (static_cast<float>(rand() % RAND_MAX) / RAND_MAX) * 2.0f - 1.0f;
                     
                     float dx =  ( (r3) * 3.0f * (1.0f/(float)img->width())) - 0.5f;
                     float dy =  ( (r4) * 3.0f * (1.0f/(float)img->height())) - 0.5f;
-                    Vector3 P = Vector3(0,0,0) + focusPoint * ray.d;
+                    Vector3 P = focusPoint * ray.d.normalize();
                     Vector3 dir = P - Vector3(dx, dy, 0.0f);
                     //ray.o = Vector3(dx,dy,0.0f);
                     //ray.d = dir;
-                    ray  = Ray(Vector3(dx,dy,0.0f), dir);
+                    ray  = Ray(Vector3(dx,dy,0.0f), dir.normalize());
+                    
                     shadeResult += hitInfo.material->shade(ray, hitInfo, *this);
                     
+                    
+                }
+                shadeResult = shadeResult * 1.0f/16.0f;
+                img->setPixel(i, j, shadeResult);
+                
                     //img->setPixel(i, j, shadeResult);
             }
 
-                shadeResult = shadeResult * 1.0f/16.0f;
-                img->setPixel(i, j, shadeResult);
+       
             //Ray cameraSpaceRay;
             //cameraSpaceRay.d = Vector3(px, py, 1.0f);
             //ray.d = cameraSpaceRay.d;
-            
-
-      
-            }
-            
+         
        
             
             
@@ -126,45 +128,60 @@ Scene::raytraceImage(Camera *cam, Image *img)
         printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
         fflush(stdout);
     }*/
+    
     // loop over all pixels in the image
-    /*for (int j = 0; j < img->height(); ++j)
+    for (int j = 0; j < img->height(); ++j)
     {
         for (int i = 0; i < img->width(); ++i)
         {
+            for(int k = 0; k < 16; k++){
+
             ray = cam->eyeRay(i, j, img->width(), img->height());
             ray.numBounces = 0;
-            int focaldistance = 2;
-            float focusPoint = 2.0f;
-            
-                
-            for(int k = 0; k < 16; k++){
-                if (trace(hitInfo, ray))
-                {
-                    float r3 = distribution(generator);
-                    float r4 = distribution(generator);
-            
-                    float dx =  ( (r3) * 3.0f * (float)img->width()) - 0.5f;
-                    float dy =  ( (r4) * 3.0f * (float)img->height()) - 0.5f;
-                    Vector3 P = Vector3(0,0,0) + focusPoint * ray.d;
-                    Vector3 dir = P - Vector3(dx, dy, 0.0f);
-                    ray.o = Vector3(dx,dy,0.0f);
-                    ray.d = dir;
-                    shadeResult += hitInfo.material->shade(ray, hitInfo, *this);
-                }
-                
+            if (trace(hitInfo, ray))
+            {
+                shadeResult += hitInfo.material->shade(ray, hitInfo, *this);
             }
-            
-            shadeResult = shadeResult * 1.0f/16.0f;
+            }
+            shadeResult /= 16.0f;
             img->setPixel(i, j, shadeResult);
-            
+            shadeResult = Vector3(0.0f);
         }
-        
         img->drawScanline(j);
         glFinish();
         printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
         fflush(stdout);
-    }*/
-    float x;
+    }
+
+    
+    
+    
+    /*double rayX = (x - width / 2)/2.0;
+     double rayY = (y - height / 2)/2.0;
+     double pixelWidth = rayX - (x + 1 - width / 2)/2.0;
+     double sampleWidth = pixelWidth / superSamples;
+     double sampleStartX = rayX - pixelWidth/2.0;
+     double sampleStartY = rayY - pixelWidth/2.0;
+     double sampleWeight = 1.0 / (superSamples * superSamples);
+     Color color;
+     
+     for (int x = 0; x < superSamples; x++) {
+     for (int y = 0; y < superSamples; y++) {
+     Vector imagePlanePoint = camera.lookAt -
+     (camera.u * (sampleStartX + (x * sampleWidth)) * imageScale) +
+     (camera.v * (sampleStartY + (y * sampleWidth)) * imageScale);
+     
+     color = color + (castRayAtPoint(imagePlanePoint) * sampleWeight);
+     }
+     }
+     
+     return color;*/
+    
+    
+    
+    
+    
+    /*float x;
     float y;
     float z;
     int numPhotons = 0;
@@ -227,7 +244,7 @@ Scene::raytraceImage(Camera *cam, Image *img)
         
         
         
-    }
+    }*/
     
     
     

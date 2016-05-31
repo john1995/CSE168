@@ -5,6 +5,7 @@
 #include "Object.h"
 #include "PointLight.h"
 #include "BVH.h"
+//#include <random>
 
 class Camera;
 class Image;
