@@ -27,8 +27,9 @@ typedef struct Photon {
 //**********************
   float pos[3];                 // photon position
   short plane;                  // splitting plane for kd-tree
-  char theta, phi;     // incoming direction
+  char theta, phi;              // incoming direction
   float power[3];               // photon power (uncompressed)
+  float flag;                   //Used to determine which photon map to store
 } Photon;
 
 
@@ -61,12 +62,12 @@ void store(
     const float pos[3],            // photon position
     const float dir[3] );          // photon direction
 
-  inline void scale_photon_power(
+   void scale_photon_power(
     const float scale );           // 1/(number of emitted photons)
 
-  inline void balance(void);              // balance the kd-tree (before use!)
+  void balance(void);              // balance the kd-tree (before use!)
 
-  inline void irradiance_estimate(
+   void irradiance_estimate(
     float irrad[3],                // returned irradiance
     const float pos[3],            // surface position
     const float normal[3],         // surface normal at pos

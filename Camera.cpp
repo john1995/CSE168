@@ -132,7 +132,7 @@ Camera::eyeRay(int x, int y, int imageWidth, int imageHeight)
      float imPlaneVPos = bottom + (top - bottom)*(((float)y+0.5f)/(float)imageHeight);
 
     
-    float apertureRadius = 0.2f;
+    /*float apertureRadius = 0.2f;
     
     float xApertureRadius = imPlaneUPos*apertureRadius;
     float yApertureRadius = imPlaneVPos*apertureRadius;
@@ -141,5 +141,7 @@ Camera::eyeRay(int x, int y, int imageWidth, int imageHeight)
 
     Vector3 newRandomisedEyePoint = m_eye + R1*xApertureRadius + R2*yApertureRadius;
     
-    return Ray(newRandomisedEyePoint, (2.0f * (imPlaneUPos*uDir + imPlaneVPos*vDir - wDir).normalize()));
+    return Ray(newRandomisedEyePoint, (2.0f * (imPlaneUPos*uDir + imPlaneVPos*vDir - wDir).normalize()));*/
+    return Ray(m_eye, ( (imPlaneUPos*uDir + imPlaneVPos*vDir - wDir).normalize()));
+
 }

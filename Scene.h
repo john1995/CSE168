@@ -31,7 +31,7 @@ public:
     
     bool initPhotonMaps();
     
-    bool tracePhoton(HitInfo& photHit, Ray& photRay, float* power);
+    bool tracePhoton(HitInfo& photHit, Ray& photRay, Photon& photon);
 
 protected:
     Objects m_objects;

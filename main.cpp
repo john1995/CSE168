@@ -29,6 +29,60 @@ namespace
 
 
 void
+makeCornellScene()
+{
+    g_camera = new Camera;
+    g_scene = new Scene;
+    g_image = new Image;
+    
+    g_image->resize(512, 512);
+    
+    // set up the camera
+    g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.5f));
+    g_camera->setEye(Vector3(0, 3, 6));
+    g_camera->setLookAt(Vector3(0, 0, 0));
+    g_camera->setUp(Vector3(0, 1, 0));
+    g_camera->setFOV(45);
+    
+    // create and place a point light source
+    PointLight * light = new PointLight;
+    light->setPosition(Vector3(2.5,7,-2));
+    light->setColor(Vector3(1, 1, 1));
+    light->setWattage(400);
+    g_scene->addLight(light);
+    
+    Material* material = new Lambert(Vector3(0.8));
+    /*TriangleMesh * cornell = new TriangleMesh;
+    cornell->load("empty_cornell_box.obj");
+    addMeshTrianglesToScene(cornell, material);*/
+    
+    TriangleMesh * bunny = new TriangleMesh;
+    bunny->load("empty_cornell_box.obj");
+    
+    // create all the triangles in the bunny mesh and add to the scene
+    for (int i = 0; i < bunny->numTris(); ++i)
+    {
+        Triangle* t = new Triangle;
+        t->setIndex(i);
+        t->setMesh(bunny);
+        t->setMaterial(material);
+        g_scene->addObject(t);
+    }
+    
+    Mirror* material2 = new Mirror();
+
+    Sphere * sphere = new Sphere;
+    sphere->setCenter(Vector3(2.5,2,-2));
+    sphere->setRadius(1);
+    sphere->setMaterial(material2);
+    g_scene->addObject(sphere);
+    
+    
+    // let objects do pre-calculations if needed
+    g_scene->preCalc();
+}
+
+void
 makeTeapotScene()
 {
     g_camera = new Camera;
@@ -51,14 +105,14 @@ makeTeapotScene()
     light->setWattage(700);
     g_scene->addLight(light);
     
-    Material* material = new Lambert(Vector3(1.0));
+    Material* material = new Lambert(Vector3(0.8));
     //StoneMat* material = new StoneMat();
     Glass* material2 = new Glass();
     material2->setBackgroundColor(Vector3(0.0f, 0.0f, 0.5f));
     Mirror* glass = new Mirror();
     TriangleMesh * teapot = new TriangleMesh;
     teapot->load("teapot.obj");
-    addMeshTrianglesToScene(teapot, glass);
+    //addMeshTrianglesToScene(teapot, glass);
     
     
     
@@ -88,7 +142,7 @@ makeTeapotScene()
     xform *= rotate(25, .3, .1, .6);
     mesh = new TriangleMesh;
     mesh->load("teapot.obj", xform);
-    addMeshTrianglesToScene(mesh, material2);
+    //addMeshTrianglesToScene(mesh, material2);
     
     
     // create the floor triangle
@@ -755,8 +809,9 @@ main(int argc, char*argv[])
     
     //create a scene
     //makeSponzaScene();
-    makeTeapotScene();
+    //makeTeapotScene();
     //makeBunny20Scene();
+    makeCornellScene();
     MiroWindow miro(&argc, argv);
 
     miro.mainLoop();
