@@ -3,6 +3,7 @@
 
 #include "Miro.h"
 #include "Object.h"
+#include "photonmap.h"
 #include "PointLight.h"
 #include "BVH.h"
 //#include <random>
@@ -25,11 +26,17 @@ public:
     void raytraceImage(Camera *cam, Image *img);
     bool trace(HitInfo& minHit, const Ray& ray,
                float tMin = 0.0f, float tMax = MIRO_TMAX) const;
+    
+    void emitPhotons();
+    
+    bool initPhotonMaps();
 
 protected:
     Objects m_objects;
     BVH m_bvh;
     Lights m_lights;
+    Photon_map *globalMap, *volumeMap, *causticMap;
+    const int MAX_PHOTONS = 1000;
 };
 
 extern Scene * g_scene;

@@ -1,12 +1,11 @@
 #include "photonmap.h"
 
-
 /* This is the constructor for the photon map.
  * To create the photon map it is necessary to specify the
  * maximum number of photons that will be stored
 */
 //************************************************
-Photon_map :: Photon_map( const int max_phot )
+Photon_map::Photon_map( const int max_phot )
 //************************************************
 {
   stored_photons = 0;
@@ -38,7 +37,7 @@ Photon_map :: Photon_map( const int max_phot )
 
 
 //*************************
-Photon_map :: ~Photon_map()
+Photon_map::~Photon_map()
 //*************************
 {
   free( photons );

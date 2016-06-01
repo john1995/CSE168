@@ -4,7 +4,6 @@
 #include "Image.h"
 #include "Console.h"
 #include <random>
-#include "photonmap.h"
 
 Scene * g_scene = 0;
 
@@ -52,11 +51,9 @@ Scene::preCalc()
 void
 Scene::raytraceImage(Camera *cam, Image *img)
 {
-    Ray ray,photray;
+    Ray ray;
     HitInfo hitInfo;
     Vector3 shadeResult;
-    float r1 = distribution2(generator);
-    float r2 = distribution2(generator);
 
     // loop over all pixels in the image
     /*for (int j = 0; j < img->height(); ++j)
@@ -129,19 +126,24 @@ Scene::raytraceImage(Camera *cam, Image *img)
         fflush(stdout);
     }*/
     
+    /********** FIRST PASS - Emit photons ****************/
+    emitPhotons();
+    
+    /********** SECOND PASS - Trace image ****************/
     // loop over all pixels in the image
     for (int j = 0; j < img->height(); ++j)
     {
         for (int i = 0; i < img->width(); ++i)
         {
-            for(int k = 0; k < 16; k++){
-
-            ray = cam->eyeRay(i, j, img->width(), img->height());
-            ray.numBounces = 0;
-            if (trace(hitInfo, ray))
+            for(int k = 0; k < 16; k++)
             {
-                shadeResult += hitInfo.material->shade(ray, hitInfo, *this);
-            }
+
+                ray = cam->eyeRay(i, j, img->width(), img->height());
+                ray.numBounces = 0;
+                if (trace(hitInfo, ray))
+                {
+                    shadeResult += hitInfo.material->shade(ray, hitInfo, *this);
+                }
             }
             shadeResult /= 16.0f;
             img->setPixel(i, j, shadeResult);
@@ -179,83 +181,102 @@ Scene::raytraceImage(Camera *cam, Image *img)
     
     
     
-    
-    
-    /*float x;
-    float y;
-    float z;
-    int numPhotons = 0;
-    while (numPhotons < 1000) {
-        do{
-            x = distribution(generator);
-            y = distribution(generator);
-            z = distribution(generator);
-        }while((x*x + y*y + z*z)> 1.0f);
-         
-        const Lights *lightlist = lights();
-        PointLight * pLight = *(lightlist->begin());
-        Vector3 lightpos = pLight->position();
-        photray.d = Vector3(x,y,z);
-        photray.o = lightpos;
-        HitInfo phothit;
-        Photon photon;
-        
-        if (trace(phothit, ray))
-        {
-            
-        }
-        numPhotons += 1;
-        
-        photon.pos[0] = phothit.P.x;
-        photon.pos[1] = phothit.P.y;
-        photon.pos[2] = phothit.P.z;
-        photon.power[0] = pLight->wattage();
-        photon.power[1] = pLight->wattage();
-        photon.power[2] = pLight->wattage();
-
-        //Russian roulette
-        float dr =  phothit.material->k_d.x;
-        float dg =  phothit.material->k_d.y;
-        float db =  phothit.material->k_d.z;
-        float sr =  phothit.material->k_s.x;
-        float sg =  phothit.material->k_s.y;
-        float sb =  phothit.material->k_s.z;
-
-        float Pr = std::max(dr+sr, std::max(dg+sg, db+sb));
-        float Pd = ( (dr+dg+db)/(dr+dg+db+sr+sg+sb) ) * Pr;
-        float Ps = Pr - Pd;
-        float dec = distribution2(generator);
-        
-        //diffuse reflection
-        if(dec<Pd){
-            
-        }
-        //specular reflection
-        else if( dec < Ps + Pd){
-            
-        }
-        //Absortion
-        else{
-            
-        }
-
-        
-        
-        
-        
-        
-    }*/
-    
-    
-    
     printf("Rendering Progress: 100.000 percent\n");
     debug("done Raytracing!\n");
     
     m_bvh.printStatistics();
 }
 
+void Scene::emitPhotons()
+{
+    //create photon maps
+    initPhotonMaps();
+    
+    float r1 = distribution2(generator);
+    float r2 = distribution2(generator);
+    Ray photRay;
+    
+    // loop over all of the lights, emit from each.
+    Lights::const_iterator lightIter;
+    for (lightIter = m_lights.begin(); lightIter != m_lights.end(); lightIter++)
+    {
+        //find reflected vector, given normal and incident light direction
+        PointLight* pLight = *lightIter;
+        
+        float x;
+        float y;
+        float z;
+        int numPhotons = 0;
+        
+        //find suitable direction to emit photons
+        while (numPhotons < MAX_PHOTONS)
+        {
+            do
+            {
+                x = distribution(generator);
+                y = distribution(generator);
+                z = distribution(generator);
+            } while((x*x + y*y + z*z)> 1.0f);
+            
+            //construct photons
+            photRay.d = Vector3(x,y,z);
+            photRay.o = pLight->position();
+            HitInfo phothit;
+            Photon photon;
+            
+            if (trace(phothit, photRay))
+            {
+                
+                numPhotons += 1;
+                
+                photon.pos[0] = phothit.P.x;
+                photon.pos[1] = phothit.P.y;
+                photon.pos[2] = phothit.P.z;
+                photon.power[0] = pLight->wattage();
+                photon.power[1] = pLight->wattage();
+                photon.power[2] = pLight->wattage();
+                
+                //Russian roulette
+                float dr =  phothit.material->k_d.x;
+                float dg =  phothit.material->k_d.y;
+                float db =  phothit.material->k_d.z;
+                float sr =  phothit.material->k_s.x;
+                float sg =  phothit.material->k_s.y;
+                float sb =  phothit.material->k_s.z;
+                
+                float Pr = std::max(dr+sr, std::max(dg+sg, db+sb));
+                float Pd = ( (dr+dg+db)/(dr+dg+db+sr+sg+sb) ) * Pr;
+                float Ps = Pr - Pd;
+                float dec = distribution2(generator);
+                
+                //diffuse reflection
+                if(dec<Pd){
+                    
+                }
+                //specular reflection
+                else if( dec < Ps + Pd){
+                    
+                }
+                //Absortion
+                else{
+                    
+                }
+            }
+        }
+    }
+}
+
 bool
 Scene::trace(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
 {
     return m_bvh.intersect(minHit, ray, tMin, tMax);
+}
+
+bool Scene::initPhotonMaps()
+{
+    globalMap = new Photon_map(1000);
+    volumeMap = new Photon_map(1000);
+    causticMap = new Photon_map(1000);
+    
+    return true;
 }

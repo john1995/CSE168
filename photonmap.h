@@ -53,7 +53,7 @@ typedef struct NearestPhotons {
 class Photon_map {
 //*****************
 public:
-  inline Photon_map( int max_phot );
+  Photon_map( const int max_phot );
   ~Photon_map();
 
  inline void store(
