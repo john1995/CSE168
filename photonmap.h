@@ -56,7 +56,7 @@ public:
   Photon_map( const int max_phot );
   ~Photon_map();
 
- inline void store(
+void store(
     const float power[3],          // photon power
     const float pos[3],            // photon position
     const float dir[3] );          // photon direction

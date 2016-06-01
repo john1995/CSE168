@@ -208,6 +208,12 @@ void Scene::emitPhotons()
         float z;
         int numPhotons = 0;
         
+        //start power all white with wattage of light
+        float* power = new float[3];
+        power[0] = pLight->wattage();
+        power[1] = pLight->wattage();
+        power[2] = pLight->wattage();
+        
         //find suitable direction to emit photons
         while (numPhotons < MAX_PHOTONS)
         {
@@ -218,50 +224,53 @@ void Scene::emitPhotons()
                 z = distribution(generator);
             } while((x*x + y*y + z*z)> 1.0f);
             
-            //construct photons
+            //construct initial photon
             photRay.d = Vector3(x,y,z);
             photRay.o = pLight->position();
-            HitInfo phothit;
-            Photon photon;
+            HitInfo photonHit;
             
-            if (trace(phothit, photRay))
-            {
-                
-                numPhotons += 1;
-                
-                photon.pos[0] = phothit.P.x;
-                photon.pos[1] = phothit.P.y;
-                photon.pos[2] = phothit.P.z;
-                photon.power[0] = pLight->wattage();
-                photon.power[1] = pLight->wattage();
-                photon.power[2] = pLight->wattage();
-                
-                //Russian roulette
-                float dr =  phothit.material->k_d.x;
-                float dg =  phothit.material->k_d.y;
-                float db =  phothit.material->k_d.z;
-                float sr =  phothit.material->k_s.x;
-                float sg =  phothit.material->k_s.y;
-                float sb =  phothit.material->k_s.z;
-                
-                float Pr = std::max(dr+sr, std::max(dg+sg, db+sb));
-                float Pd = ( (dr+dg+db)/(dr+dg+db+sr+sg+sb) ) * Pr;
-                float Ps = Pr - Pd;
-                float dec = distribution2(generator);
-                
-                //diffuse reflection
-                if(dec<Pd){
-                    
-                }
-                //specular reflection
-                else if( dec < Ps + Pd){
-                    
-                }
-                //Absortion
-                else{
-                    
-                }
-            }
+            tracePhoton(photonHit, photRay, power);
+            
+            numPhotons++;
+        }
+    }
+}
+
+bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, float* power)
+{
+    //trace photon like its a ray
+    if (trace(photonHit, photRay))
+    {
+        float pos[3] = { photonHit.P.x, photonHit.P.y, photonHit.P.z };
+        float dir[3] = { photRay.d.x, photRay.d.y, photRay.d.z };
+        
+        //store photon
+        globalMap->store(power, pos, dir);
+        
+        //Russian roulette - Decide whether to reflect or to terminate
+        float dr =  photonHit.material->k_d.x;
+        float dg =  photonHit.material->k_d.y;
+        float db =  photonHit.material->k_d.z;
+        float sr =  photonHit.material->k_s.x;
+        float sg =  photonHit.material->k_s.y;
+        float sb =  photonHit.material->k_s.z;
+        
+        float Pr = std::max(dr+sr, std::max(dg+sg, db+sb));
+        float Pd = ( (dr+dg+db)/(dr+dg+db+sr+sg+sb) ) * Pr;
+        float Ps = Pr - Pd;
+        float dec = distribution2(generator);
+        
+        //diffuse reflection
+        if(dec<Pd){
+            
+        }
+        //specular reflection
+        else if( dec < Ps + Pd){
+            
+        }
+        //Absortion
+        else{
+            
         }
     }
 }

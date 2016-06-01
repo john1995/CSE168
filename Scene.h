@@ -30,6 +30,8 @@ public:
     void emitPhotons();
     
     bool initPhotonMaps();
+    
+    bool tracePhoton(HitInfo& photHit, Ray& photRay, float* power);
 
 protected:
     Objects m_objects;
