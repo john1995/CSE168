@@ -96,6 +96,8 @@ void Photon_map :: irradiance_estimate(
     // if the scene does not have any thin surfaces
     photon_dir( pdir, p );
     if ( (pdir[0]*normal[0]+pdir[1]*normal[1]+pdir[2]*normal[2]) < 0.0f ) {
+        
+      //std::cout<<p->power[0]<<" "<<p->power[1]<<" "<<p->power[1]<< " "<<std::endl;
       irrad[0] += p->power[0];
       irrad[1] += p->power[1];
       irrad[2] += p->power[2];
@@ -221,6 +223,7 @@ void Photon_map :: store(
     return;
 
   stored_photons++;
+  //std::cout<<stored_photons<<std::endl;
   Photon *const node = &photons[stored_photons];
 
   for (int i=0; i<3; i++) {

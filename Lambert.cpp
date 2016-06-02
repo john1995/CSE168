@@ -44,8 +44,8 @@ Lambert::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         Ray shadow_ray(0);
         HitInfo hi;
         
-        //shadow_ray.o = hit.P;
-        //shadow_ray.d = l;
+        shadow_ray.o = hit.P;
+        shadow_ray.d = l;
         
         if (scene.trace(hi, shadow_ray, 0.001f, sqrt(falloff)))
         {

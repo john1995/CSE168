@@ -13,6 +13,7 @@
 #include "Material.h"
 #include "Lambert.h"
 #include "Specular.h"
+#include "Glass.hpp"
 
 //No reflections, but there is a highlight
 class Plastic : public Material
@@ -22,21 +23,21 @@ public:
     //and a diffuse component encapsulated in a Lambert material.
     //Very high "shiny" exponent to make it look more like plastic
     Plastic(Lambert* diffuse = new Lambert(),
-            Specular* specular = new Specular(Vector3(0.5f), 2.0f));
+            Glass* specular = new Glass((0.5f), 2.0f));
     
     ~Plastic();
     
     Lambert* getDiffuseCmpnt();
-    Specular* getSpecularCmpnt();
+    Glass* getSpecularCmpnt();
     void setDiffuseCmpnt(Lambert*);
-    void setSpecularCmpnt(Specular*);
+    void setSpecularCmpnt(Glass*);
     
     virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
     
 protected:
     Lambert* diffuseCmpnt;
-    Specular* specularCmpnt;
+    Glass* specularCmpnt;
     static const int MAX_BOUNCES =  0;
 };
 

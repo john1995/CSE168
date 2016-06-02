@@ -81,6 +81,7 @@ void store(
   inline void photon_dir(
     float *dir,                    // direction of photon (returned)
     const Photon *p ) const;       // the photon
+    int stored_photons;
 
 private:
 
@@ -100,7 +101,6 @@ private:
 
   Photon *photons;
 
-  int stored_photons;
   int half_stored_photons;
   int max_photons;
   int prev_scale;

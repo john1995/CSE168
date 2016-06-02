@@ -94,7 +94,7 @@ Specular::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             else
             {
                 //get color from background
-                L += bgColor;
+                L += Vector3(0,0,0.5f);//bgColor;
             }
         }
 

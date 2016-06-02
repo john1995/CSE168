@@ -10,10 +10,10 @@
 #include "Ray.h"
 #include "Scene.h"
 
-Glass::Glass( float kd, float ks) :
+Glass::Glass( Vector3 kd, Vector3 ks) :
     k_d(kd), k_s(ks)
 {
-    
+    k_s = Vector3(0.8f);
 }
 Glass::Glass(){}
 
@@ -30,7 +30,7 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
     
     //scale down intensity of light in proportion to num of ray bounces
     Vector3 attenuation = k_s * ( 1 / (ray.numBounces+1));
-    
+    //k_s = 0.7f;
     const Lights *lightlist = scene.lights();
     
     // loop over all of the lights
@@ -56,7 +56,7 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             {
                 //get color from object hit
                 //printf("Bounced reflected ray hit something!\n");
-                //L += attenuation * hitReflect.material->shade(reflect, hitReflect, scene);
+                L += attenuation * hitReflect.material->shade(reflect, hitReflect, scene);
             }
             else
             {
@@ -76,11 +76,11 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         //Check to see if refraction is coming into material or out of it
         if(dot(hit.N,ray.d) < 0){
             n1 = 1.0f;
-            n2 = 2.5f;
+            n2 = 1.0f;
             No = hit.N;
         }
         else{
-            n1 = 2.5f;
+            n1 = 1.0f;
             n2 = 1.0f;
             Vector3 neg = Vector3(-1,-1,-1);
             No = -1 * hit.N;
@@ -92,12 +92,12 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         float c = 1 - (pow(n1, 2) * (1 - pow(dot(ray.d, No), 2)) / pow(n2, 2));
         if (c < 0)
         {
-            if (ray.numBounces < maxBounces)
+            if (ray.numBounces < 2)
             {
                 //trace from reflected vector now
                 Ray reflect(ray.numBounces + 1);
                 reflect.o = hit.P;
-                reflect.d = reflected;
+                reflect.d = reflected.normalize();
                 HitInfo hitReflect;
                 
                 if (scene.trace(hitReflect, reflect, 0.008f))
@@ -121,10 +121,10 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             //trace from reflected vector now
             Ray refract(ray.numBounces + 1);
             refract.o = hit.P;
-            refract.d = wt;
+            refract.d = wt.normalize();
             HitInfo hitRefract;
             
-            if (scene.trace(hitRefract, refract, 0.01f))
+            if (scene.trace(hitRefract, refract, 0.001f))
             {
                 Vector3 color = pLight->color();
                 //printf("Bounced refracted ray hit something!\n");
@@ -175,7 +175,7 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             //https://en.wikipedia.org/wiki/Specular_highlight
             
             //Specular calculation for ABSORBED light
-            //L += attenuation * pow(std::max(0.0f, dot(h, hit.N)), 50* shinyExp);
+            L += attenuation * pow(std::max(0.0f, dot(h, hit.N)), 50);
             
             //check entering or exiting and change n1/n2 n2/n1
             //dot product ray.dot.normal

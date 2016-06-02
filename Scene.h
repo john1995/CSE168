@@ -31,14 +31,14 @@ public:
     
     bool initPhotonMaps();
     
-    bool tracePhoton(HitInfo& photHit, Ray& photRay, Photon& photon);
+    bool tracePhoton(HitInfo& photHit, Ray& photRay, Photon& photon, unsigned int numBounces);
 
 protected:
     Objects m_objects;
     BVH m_bvh;
     Lights m_lights;
     Photon_map *globalMap, *volumeMap, *causticMap;
-    const int MAX_PHOTONS = 1000;
+    const int MAX_PHOTONS = 100000000;
 };
 
 extern Scene * g_scene;

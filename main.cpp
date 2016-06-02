@@ -39,16 +39,18 @@ makeCornellScene()
     
     // set up the camera
     g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.5f));
-    g_camera->setEye(Vector3(0, 3, 6));
-    g_camera->setLookAt(Vector3(0, 0, 0));
+    g_camera->setEye(Vector3(2.75, 3, 6));
+    g_camera->setLookAt(Vector3(2.75, 2.75, 0));
     g_camera->setUp(Vector3(0, 1, 0));
     g_camera->setFOV(45);
     
     // create and place a point light source
     PointLight * light = new PointLight;
-    light->setPosition(Vector3(2.5,7,-2));
+    //light->setPosition(Vector3(2.5,7,-2));
+    light->setPosition(Vector3(2.5,2,-3));
+
     light->setColor(Vector3(1, 1, 1));
-    light->setWattage(400);
+    light->setWattage(10);
     g_scene->addLight(light);
     
     Material* material = new Lambert(Vector3(0.8));
@@ -69,11 +71,13 @@ makeCornellScene()
         g_scene->addObject(t);
     }
     
-    Mirror* material2 = new Mirror();
+    Plastic* material2 = new Plastic(new Lambert(0.8f),new Glass(Vector3(0.4f),Vector3(0.6f)));//Glass(.4f,.6f);
+    //material2->setBackgroundColor(Vector3(0.0f, 0.0f, 0.5f));
+
 
     Sphere * sphere = new Sphere;
-    sphere->setCenter(Vector3(2.5,2,-2));
-    sphere->setRadius(1);
+    sphere->setCenter(Vector3(1,.5,-2));
+    sphere->setRadius(.1);
     sphere->setMaterial(material2);
     g_scene->addObject(sphere);
     
@@ -100,7 +104,7 @@ makeTeapotScene()
     
     // create and place a point light source
     PointLight * light = new PointLight;
-    light->setPosition(Vector3(10, 10, 10));
+    light->setPosition(Vector3(0, 20, 0));
     light->setColor(Vector3(1, 1, 1));
     light->setWattage(700);
     g_scene->addLight(light);
@@ -809,9 +813,9 @@ main(int argc, char*argv[])
     
     //create a scene
     //makeSponzaScene();
-    //makeTeapotScene();
+    makeTeapotScene();
     //makeBunny20Scene();
-    makeCornellScene();
+    //makeCornellScene();
     MiroWindow miro(&argc, argv);
 
     miro.mainLoop();

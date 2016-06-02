@@ -8,11 +8,11 @@
 
 #include "Plastic.h"
 
-Plastic::Plastic(Lambert* diffuse, Specular* specular) :
+Plastic::Plastic(Lambert* diffuse, Glass* specular) :
                  diffuseCmpnt(diffuse), specularCmpnt(specular)
 {
     //set maximum number of bounces specular cmpnt can have
-    specularCmpnt->setMaxBounces(MAX_BOUNCES);
+    //specularCmpnt->setMaxBounces(MAX_BOUNCES);
 }
 
 Plastic::~Plastic()
@@ -25,7 +25,7 @@ Lambert* Plastic::getDiffuseCmpnt()
     return diffuseCmpnt;
 }
 
-Specular* Plastic::getSpecularCmpnt()
+Glass* Plastic::getSpecularCmpnt()
 {
     return specularCmpnt;
 }
@@ -35,7 +35,7 @@ void Plastic::setDiffuseCmpnt(Lambert* diff)
     diffuseCmpnt = diff;
 }
 
-void Plastic::setSpecularCmpnt(Specular* spec)
+void Plastic::setSpecularCmpnt(Glass* spec)
 {
     specularCmpnt = spec;
 }
