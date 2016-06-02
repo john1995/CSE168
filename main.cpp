@@ -27,6 +27,68 @@ namespace
     inline Matrix4x4 rotate(float angle, float x, float y, float z);
 } // namespace
 
+void makeWineGlassScene()
+{
+    g_camera = new Camera;
+    g_scene = new Scene;
+    g_image = new Image;
+    
+    g_image->resize(512, 512);
+    
+    // set up the camera
+    g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
+    g_camera->setEye(Vector3(2.75, 6.0f, 8.0f));
+    g_camera->setLookAt(Vector3(0, 0.0, 0.0));
+    g_camera->setUp(Vector3(0, 1, 0));
+    g_camera->setFOV(45);
+    
+    // create and place a point light source
+    PointLight * light = new PointLight;
+    light->setPosition(Vector3(0.0,3.5,0.0));
+    
+    light->setColor(Vector3(1, 1, 1));
+    light->setWattage(500);
+    g_scene->addLight(light);
+    
+    Plastic* material2 = new Plastic(new Lambert(0.8f),new Glass(Vector3(0.4f),Vector3(0.6f)));
+    material2->getSpecularCmpnt()->setBackgroundColor(Vector3(0.0f, 0.0f, 0.2f));
+    
+    Material* glass = new Glass();
+    Material* tableMat = new Lambert(Vector3(0.8)); //flat white
+
+    TriangleMesh * wineGlass = new TriangleMesh;
+    wineGlass->load("wine_glass.obj");
+    
+    // create all the triangles in the bunny mesh and add to the scene
+    for (int i = 0; i < wineGlass->numTris(); ++i)
+    {
+        Triangle* t = new Triangle;
+        t->setIndex(i);
+        t->setMesh(wineGlass);
+        t->setMaterial(glass);
+        g_scene->addObject(t);
+    }
+    
+    //Draw table
+    // create the floor triangle
+    TriangleMesh * floor = new TriangleMesh;
+    floor->createSingleTriangle();
+    floor->setV1(Vector3(-10, -2, -10));
+    floor->setV2(Vector3(   0, -2,  10));
+    floor->setV3(Vector3( 10, -2, -10));
+    floor->setN1(Vector3(0, -2, 0));
+    floor->setN2(Vector3(0, -2, 0));
+    floor->setN3(Vector3(0, -2, 0));
+    
+    Triangle* t = new Triangle;
+    t->setIndex(0);
+    t->setMesh(floor);
+    t->setMaterial(tableMat);
+    g_scene->addObject(t);
+    
+    // let objects do pre-calculations if needed
+    g_scene->preCalc();
+}
 
 void
 makeCornellScene()
@@ -38,8 +100,8 @@ makeCornellScene()
     g_image->resize(512, 512);
     
     // set up the camera
-    g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.5f));
-    g_camera->setEye(Vector3(2.75, 3, 6));
+    g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
+    g_camera->setEye(Vector3(2.75, 3.0f, 8.0f));
     g_camera->setLookAt(Vector3(2.75, 2.75, 0));
     g_camera->setUp(Vector3(0, 1, 0));
     g_camera->setFOV(45);
@@ -47,39 +109,55 @@ makeCornellScene()
     // create and place a point light source
     PointLight * light = new PointLight;
     //light->setPosition(Vector3(2.5,7,-2));
-    light->setPosition(Vector3(2.5,2,-3));
+    light->setPosition(Vector3(2.75,5.4,-2.75));
 
     light->setColor(Vector3(1, 1, 1));
-    light->setWattage(10);
+    light->setWattage(100);
     g_scene->addLight(light);
     
-    Material* material = new Lambert(Vector3(0.8));
+    Material* white = new Lambert(Vector3(0.8));
+    Material* red = new Lambert(Vector3(1.0f, 0.0f, 0.0f));
+    Material* green = new Lambert(Vector3(0.0f, 1.0f, 0.0f));
     /*TriangleMesh * cornell = new TriangleMesh;
     cornell->load("empty_cornell_box.obj");
     addMeshTrianglesToScene(cornell, material);*/
     
-    TriangleMesh * bunny = new TriangleMesh;
-    bunny->load("empty_cornell_box.obj");
+    TriangleMesh * cornellBox = new TriangleMesh;
+    cornellBox->load("cornell_box.obj");
     
     // create all the triangles in the bunny mesh and add to the scene
-    for (int i = 0; i < bunny->numTris(); ++i)
+    for (int i = 0; i < cornellBox->numTris(); ++i)
     {
+        Material* m;
+        if (i < 4 || i >= 8)
+        {
+            m = white;
+        }
+        else if (i >= 4 && i < 6)
+        {
+            m = red;
+        }
+        else if ( i >= 6 && i < 8)
+        {
+            m = green;
+        }
+        
         Triangle* t = new Triangle;
         t->setIndex(i);
-        t->setMesh(bunny);
-        t->setMaterial(material);
+        t->setMesh(cornellBox);
+        t->setMaterial(m);
         g_scene->addObject(t);
     }
     
-    Plastic* material2 = new Plastic(new Lambert(0.8f),new Glass(Vector3(0.4f),Vector3(0.6f)));//Glass(.4f,.6f);
+    //Plastic* material2 = new Plastic(new Lambert(0.8f),new Glass(Vector3(0.4f),Vector3(0.6f)));//Glass(.4f,.6f);
     //material2->setBackgroundColor(Vector3(0.0f, 0.0f, 0.5f));
 
 
-    Sphere * sphere = new Sphere;
-    sphere->setCenter(Vector3(1,.5,-2));
-    sphere->setRadius(.1);
-    sphere->setMaterial(material2);
-    g_scene->addObject(sphere);
+    //Sphere * sphere = new Sphere;
+    //sphere->setCenter(Vector3(1,.5,-2));
+    //sphere->setRadius(.1);
+    //sphere->setMaterial(material2);
+    //g_scene->addObject(sphere);
     
     
     // let objects do pre-calculations if needed
@@ -97,8 +175,8 @@ makeTeapotScene()
     
     // set up the camera
     g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.5f));
-    g_camera->setEye(Vector3(0, 3, 6));
-    g_camera->setLookAt(Vector3(0, 0, 0));
+    g_camera->setEye(Vector3(1, 3, 6));
+    g_camera->setLookAt(Vector3(1, 0, 0));
     g_camera->setUp(Vector3(0, 1, 0));
     g_camera->setFOV(45);
     
@@ -111,15 +189,12 @@ makeTeapotScene()
     
     Material* material = new Lambert(Vector3(0.8));
     //StoneMat* material = new StoneMat();
-    Glass* material2 = new Glass();
-    material2->setBackgroundColor(Vector3(0.0f, 0.0f, 0.5f));
-    Mirror* glass = new Mirror();
+    Glass* glass = new Glass();
+    glass->setBackgroundColor(Vector3(0.0f, 0.0f, 0.2f));
+    Mirror* mirror = new Mirror();
     TriangleMesh * teapot = new TriangleMesh;
     teapot->load("teapot.obj");
     //addMeshTrianglesToScene(teapot, glass);
-    
-    
-    
     
     ///make more objects
     TriangleMesh * mesh;
@@ -132,11 +207,11 @@ makeTeapotScene()
     // teapot 1
     xform.setIdentity();
     //xform *= scale(0.3, 2.0, 0.7);
-    xform *= translate(1, 0, 3);
+    xform *= translate(1, 0, 0);
     xform *= rotate(25, .3, .1, .6);
     mesh = new TriangleMesh;
     mesh->load("teapot.obj", xform);
-    addMeshTrianglesToScene(mesh, material);
+    addMeshTrianglesToScene(mesh, glass);
     
     
     // teapot 2
@@ -476,50 +551,6 @@ makeSponzaScene()
     g_scene->preCalc();
 }
 
-void makeTestScene()
-{
-    g_camera = new Camera;
-    g_scene = new Scene;
-    g_image = new Image;
-    
-    g_image->resize(512, 512);
-    
-    // set up the camera
-    g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
-    g_camera->setEye(Vector3(8, 1.5, 1));
-    g_camera->setLookAt(Vector3(0, 2.5, -1));
-    g_camera->setUp(Vector3(0, 1, 0));
-    g_camera->setFOV(55);
-    
-    // create and place a point light source
-    PointLight * light = new PointLight;
-    light->setPosition(Vector3(0, 10.0, 0));
-    light->setColor(Vector3(1, 1, 1));
-    light->setWattage(200);
-    g_scene->addLight(light);
-    
-    Material* mat = new Lambert(Vector3(1.0f));
-    
-    TriangleMesh * floor = new TriangleMesh;
-    floor->createSingleTriangle();
-    floor->setV1(Vector3(  0, 10,  10));
-    floor->setV2(Vector3( 10, 0, -10));
-    floor->setV3(Vector3(-10, 0, -10));
-    floor->setN1(Vector3(0, 1, 0));
-    floor->setN2(Vector3(0, 1, 0));
-    floor->setN3(Vector3(0, 1, 0));
-    
-    Triangle* t = new Triangle;
-    t->setIndex(0);
-    t->setMesh(floor);
-    t->setMaterial(mat);
-    g_scene->addObject(t);
-    
-    // let objects do pre-calculations if needed
-    g_scene->preCalc();
-}
-
-
 // local helper function definitions
 namespace
 {
@@ -813,8 +844,9 @@ main(int argc, char*argv[])
     
     //create a scene
     //makeSponzaScene();
-    makeTeapotScene();
-    //makeBunny20Scene();
+    makeWineGlassScene();
+    //makeBunny1Scene();
+    //makeTeapotScene();
     //makeCornellScene();
     MiroWindow miro(&argc, argv);
 
