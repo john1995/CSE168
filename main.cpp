@@ -106,7 +106,7 @@ makeTeapotScene()
     PointLight * light = new PointLight;
     light->setPosition(Vector3(0, 20, 0));
     light->setColor(Vector3(1, 1, 1));
-    light->setWattage(700);
+    light->setWattage(900);
     g_scene->addLight(light);
     
     Material* material = new Lambert(Vector3(0.8));

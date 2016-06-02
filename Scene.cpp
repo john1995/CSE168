@@ -220,8 +220,8 @@ void Scene::emitPhotons()
 
 bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsigned int numBounces)
 {
-    if(numBounces >= 2)
-        return true;
+    //if(numBounces >= 1)
+      //  return true;
     
     //trace photon like its a ray
     if (trace(photonHit, photRay))
@@ -268,7 +268,7 @@ bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsign
 
         
         //diffuse reflection
-        if(dec<Pd){
+        if(dec<Pd && numBounces <= 2){
 
             Vector3 reflected = photRay.d - 2.0f * (dot(photonHit.N, photRay.d)) * photonHit.N;
             Ray difrefl(photonHit.P,reflected.normalize());
@@ -284,7 +284,7 @@ bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsign
             
         }
         //specular reflection
-        else if( dec < Ps + Pd){
+        else if( dec < Ps + Pd  && numBounces <= 2){
             std::cout<<"Ps/Pd: "<<Pd<< " " << Ps<<std::endl;
 
             Vector3 reflected = photRay.d - 2.0f * (dot(photonHit.N, photRay.d)) * photonHit.N;
@@ -314,9 +314,9 @@ Scene::trace(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
 
 bool Scene::initPhotonMaps()
 {
-    globalMap = new Photon_map(1000000*10);
+    globalMap = new Photon_map(1000000);
     volumeMap = new Photon_map(1000);
-    causticMap = new Photon_map(1000000*10);
+    causticMap = new Photon_map(1000000);
     
     return true;
 }
