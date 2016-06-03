@@ -35,6 +35,8 @@ public:
     virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
     
+    const void print();
+    
 protected:
     Lambert* diffuseCmpnt;
     Glass* specularCmpnt;

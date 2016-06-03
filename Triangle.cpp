@@ -64,8 +64,9 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
     
     result.t = dot(normal, a - r.o) / denom;
     
-    if (result.t < tMin || result.t > tMax)
-        return false;
+    /* FIXES TRIANGLE INTERSECTION PROBLEM WHEN NOT WOUND CCW, BUT WILL RENDER TRIANGLES PAST MIRO BOUNDS */
+    //if (result.t < tMin || result.t > tMax)
+    //    return false;
     
     //Assign hit location to HitInfo result
     result.P = r.o + result.t * r.d;

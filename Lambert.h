@@ -20,6 +20,8 @@ public:
     
     virtual Vector3 shade(Ray& ray, const HitInfo& hit,
                           const Scene& scene) const;
+    
+    void print() const;
 protected:
     
     Vector3 k_a;

@@ -131,7 +131,7 @@ BVH::build(Objects * objs)
     //Set boundaries for root.
     root->minC = globalMin;
     root->maxC = globalMax;
-    
+
     numNodes++;
     //printf("number of objects in the root: %u\n", root->numObjects);
     

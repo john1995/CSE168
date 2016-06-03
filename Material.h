@@ -19,7 +19,7 @@ public:
                           const Scene& scene) const;
     
 
-    
+    virtual void print() const {}
     Vector3 k_d;
     Vector3 k_s;
     //Vector3 k_a;

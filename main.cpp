@@ -44,17 +44,19 @@ void makeWineGlassScene()
     
     // create and place a point light source
     PointLight * light = new PointLight;
-    light->setPosition(Vector3(0.0,3.5,0.0));
+    light->setPosition(Vector3(3.0,3.0,0.0));
     
     light->setColor(Vector3(1, 1, 1));
-    light->setWattage(500);
+    light->setWattage(50);
     g_scene->addLight(light);
     
-    Plastic* material2 = new Plastic(new Lambert(0.8f),new Glass(Vector3(0.4f),Vector3(0.6f)));
-    material2->getSpecularCmpnt()->setBackgroundColor(Vector3(0.0f, 0.0f, 0.2f));
+    //Plastic* material2 = new Plastic(new Lambert(0.8f),new Glass(Vector3(0.4f),Vector3(0.6f)));
+    //material2->getSpecularCmpnt()->setBackgroundColor(Vector3(0.0f, 0.0f, 0.2f));
     
-    Material* glass = new Glass();
+    Glass* glass = new Glass();
+    glass->setBackgroundColor(Vector3(0.0f, 0.0f, 0.2f));
     Material* tableMat = new Lambert(Vector3(0.8)); //flat white
+    Material* wallMat = new Lambert(Vector3(1.0f, 0.0f, 0.0f));
 
     TriangleMesh * wineGlass = new TriangleMesh;
     wineGlass->load("wine_glass.obj");
@@ -73,18 +75,56 @@ void makeWineGlassScene()
     // create the floor triangle
     TriangleMesh * floor = new TriangleMesh;
     floor->createSingleTriangle();
-    floor->setV1(Vector3(-10, -2, -10));
-    floor->setV2(Vector3(   0, -2,  10));
-    floor->setV3(Vector3( 10, -2, -10));
-    floor->setN1(Vector3(0, -2, 0));
-    floor->setN2(Vector3(0, -2, 0));
-    floor->setN3(Vector3(0, -2, 0));
+    floor->setV1(Vector3(-5, -2, -10));
+    floor->setV2(Vector3(-5, -2,  10));
+    floor->setV3(Vector3(5, -2, -10));
+    floor->setN1(Vector3(0, 1, 0));
+    floor->setN2(Vector3(0, 1, 0));
+    floor->setN3(Vector3(0, 1, 0));
     
     Triangle* t = new Triangle;
     t->setIndex(0);
     t->setMesh(floor);
     t->setMaterial(tableMat);
     g_scene->addObject(t);
+    
+    TriangleMesh * floor1 = new TriangleMesh;
+    floor1->createSingleTriangle();
+    floor1->setV1(Vector3(5, -2, -10));
+    floor1->setV2(Vector3(-5, -2, 10));
+    floor1->setV3(Vector3(5, -2, 10));
+    floor1->setN1(Vector3(0, 1, 0));
+    floor1->setN2(Vector3(0, 1, 0));
+    floor1->setN3(Vector3(0, 1, 0));
+    
+    Triangle* t2 = new Triangle;
+    t2->setIndex(0);
+    t2->setMesh(floor1);
+    t2->setMaterial(tableMat);
+    g_scene->addObject(t2);
+    
+    //Draw wall
+    // create the wall triangle
+    TriangleMesh * wall = new TriangleMesh;
+    wall->createSingleTriangle();
+    wall->setV1(Vector3(-5, -2, 10));
+    wall->setV2(Vector3(-5, -2,  -10));
+    wall->setV3(Vector3(-5, 8, -10));
+    wall->setN1(Vector3(1, 0, 0));
+    wall->setN2(Vector3(1, 0, 0));
+    wall->setN3(Vector3(1, 0, 0));
+    
+    Triangle* t1 = new Triangle;
+    t1->setIndex(0);
+    t1->setMesh(wall);
+    t1->setMaterial(wallMat);
+    g_scene->addObject(t1);
+    
+    //Sphere * sphere = new Sphere;
+    //sphere->setCenter(Vector3(1.0,5.0,3.0));
+    //sphere->setRadius(.1);
+    //sphere->setMaterial(tableMat);
+    //g_scene->addObject(sphere);
     
     // let objects do pre-calculations if needed
     g_scene->preCalc();

@@ -18,7 +18,7 @@ Scene::openGL(Camera *cam)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     cam->drawGL();
-    m_bvh.drawBVH();
+    //m_bvh.drawBVH();
 
     // draw objects
     for (size_t i = 0; i < m_objects.size(); ++i)
@@ -56,7 +56,7 @@ Scene::raytraceImage(Camera *cam, Image *img)
     Vector3 shadeResult;
 
     // loop over all pixels in the image
-    /*for (int j = 0; j < img->height(); ++j)
+    for (int j = 0; j < img->height(); ++j)
     {
         for (int i = 0; i < img->width(); ++i)
         {
@@ -65,6 +65,7 @@ Scene::raytraceImage(Camera *cam, Image *img)
             if (trace(hitInfo, ray))
             {
                 shadeResult = hitInfo.material->shade(ray, hitInfo, *this);
+                //printf("shade result: %f, %f, %f\n", shadeResult.x, shadeResult.y, shadeResult.z);
                 img->setPixel(i, j, shadeResult);
             }
         }
@@ -72,27 +73,28 @@ Scene::raytraceImage(Camera *cam, Image *img)
         glFinish();
         printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
         fflush(stdout);
-    }*/
+    }
 
     
     /********** FIRST PASS - Emit photons ****************/
+    /*printf("Starting photon map construction.\n");
     emitPhotons();
     globalMap->scale_photon_power(1.0f/((float)MAX_PHOTONS));
     causticMap->scale_photon_power(1.0f/(float)MAX_PHOTONS);
 
     globalMap->balance();
-    causticMap->balance();
+    causticMap->balance();*/
     /********** SECOND PASS - Trace image ****************/
     
-    float irG[3];
+    /*float irG[3];
     float irC[3];
 
     float posi[3];
     float nor[3];
-    Vector3 globalIR,causticIR;
+    Vector3 globalIR,causticIR;*/
     ////////////////////////////Default Tracer/////////////////////////
     // loop over all pixels in the image
-    for (int j = 0; j < img->height(); ++j)
+    /*for (int j = 0; j < img->height(); ++j)
     {
         for (int i = 0; i < img->width(); ++i)
         {
@@ -106,10 +108,10 @@ Scene::raytraceImage(Camera *cam, Image *img)
                 nor[0] = hitInfo.N.x;
                 nor[1] = hitInfo.N.y;
                 nor[2] = hitInfo.N.z;
-                globalMap->irradiance_estimate(irG,posi,nor,10.0f,1000);
-                causticMap->irradiance_estimate(irC,posi,nor,10.0f,1000);
+                globalMap->irradiance_estimate(irG, posi, nor, 0.1f, 1000);
+                causticMap->irradiance_estimate(irC, posi, nor, 0.1f, 1000);
                 
-                //std::cout<<irC[0]<<" "<<irC[1]<<" "<<irC[2]<< " "<<std::endl;
+                //std::cout << irC[0] << " " << irC[1] << " " << irC[2] << " " << std::endl;
 
                 
                 globalIR.set(irG[0],irG[1],irG[2]);
@@ -117,8 +119,6 @@ Scene::raytraceImage(Camera *cam, Image *img)
                 //std::cout<<globalIR.x<<" "<<globalIR.y<<" "<<globalIR.z<< " "<<std::endl;
                 //std::cout<<causticIR.x<<" "<<causticIR.y<<" "<<causticIR.z<< " "<<std::endl;
 
-                
-                
                 shadeResult = hitInfo.material->shade(ray, hitInfo, *this) + globalIR + causticIR;
                 img->setPixel(i, j, shadeResult);
             }
@@ -127,7 +127,7 @@ Scene::raytraceImage(Camera *cam, Image *img)
         glFinish();
         printf("Rendering Progress: %.3f%%\r", j/float(img->height())*100.0f);
         fflush(stdout);
-    }
+    }*/
     ////////////////////////////DOF//////////////////////////////////
     /*for (int j = 0; j < img->height(); ++j)
     {
@@ -205,9 +205,9 @@ void Scene::emitPhotons()
             photRay.d = Vector3(x,y,z);
             photRay.o = pLight->position();
             HitInfo photonHit;
-            phot.power [0] = pLight->wattage();
-            phot.power [1] = pLight->wattage();
-            phot.power [2] = pLight->wattage();
+            phot.power[0] = pLight->wattage();
+            phot.power[1] = pLight->wattage();
+            phot.power[2] = pLight->wattage();
 
             tracePhoton(photonHit, photRay, phot, 0);
             
@@ -220,8 +220,8 @@ void Scene::emitPhotons()
 
 bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsigned int numBounces)
 {
-    //if(numBounces >= 1)
-      //  return true;
+    if(numBounces > 10)
+        return true;
     
     //trace photon like its a ray
     if (trace(photonHit, photRay))
@@ -235,14 +235,11 @@ bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsign
             globalMap->store(photon.power, pos, dir);
             causticMap->store(photon.power, pos, dir);
             //printf("store diffuse and specular\n");
-            
-
         }
         else if(dynamic_cast<const Lambert*>(photonHit.material)){
             //printf("store diffuse\n");
             globalMap->store(photon.power, pos, dir);
             //std::cout<<"Lambert #photons stored: "<<globalMap->stored_photons<<std::endl;
-
         }
         
         //Russian roulette - Decide whether to reflect or to terminate
@@ -268,8 +265,8 @@ bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsign
 
         
         //diffuse reflection
-        if(dec<Pd && numBounces <= 2){
-
+        if(dec<Pd){
+            //printf("Diffuse reflection\n");
             Vector3 reflected = photRay.d - 2.0f * (dot(photonHit.N, photRay.d)) * photonHit.N;
             Ray difrefl(photonHit.P,reflected.normalize());
             photon.power[0] = photon.power[0]*(dr/Pr);
@@ -284,9 +281,8 @@ bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsign
             
         }
         //specular reflection
-        else if( dec < Ps + Pd  && numBounces <= 2){
-            std::cout<<"Ps/Pd: "<<Pd<< " " << Ps<<std::endl;
-
+        else if( dec < Ps + Pd){
+            //printf("Specular reflection\n");
             Vector3 reflected = photRay.d - 2.0f * (dot(photonHit.N, photRay.d)) * photonHit.N;
             Ray difrefl(photonHit.P,reflected);
             photon.power[0] = photon.power[0]*(sr/Ps);
@@ -298,7 +294,7 @@ bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsign
         }
         //Absortion
         else{
-            //printf("absorb\n");
+            //printf("absorption\n");
             return true;
             
         }
@@ -315,7 +311,7 @@ Scene::trace(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
 bool Scene::initPhotonMaps()
 {
     globalMap = new Photon_map(1000000);
-    volumeMap = new Photon_map(1000);
+    //volumeMap = new Photon_map(1000);
     causticMap = new Photon_map(1000000);
     
     return true;

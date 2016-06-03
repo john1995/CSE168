@@ -43,7 +43,12 @@ void Plastic::setSpecularCmpnt(Glass* spec)
 Vector3
 Plastic::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
 {
-    return diffuseCmpnt->shade(ray, hit, scene) + specularCmpnt->shade(ray, hit, scene);
+    return 0.01f * diffuseCmpnt->shade(ray, hit, scene) + specularCmpnt->shade(ray, hit, scene);
+}
+
+const void Plastic::print()
+{
+    std::cerr << "Plastic" << std::endl;
 }
 
 

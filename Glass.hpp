@@ -24,12 +24,20 @@ public:
     
     void setBackgroundColor(const Vector3);
     
+    //computes mixing ratio of reflection/refraction
+    void fresnel(float indexOfRefraction, Vector3 normal, Vector3 rayDir, float &kr, float &kt);
+    
+    void print() const;
+    
 protected:
     //Coefficients in order: diffuse, reflection, transmission, ambient
     Vector3 k_d, k_s, k_a;
+    Vector3 glassColor;
     
     const int maxBounces = 4;
     Vector3 bgColor;        //background color needed for refraction
+    float indexOfRefraction;
+    float transparency;
 };
 
 #endif /* Glass_hpp */
