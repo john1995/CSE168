@@ -3,10 +3,13 @@
 #include "Console.h"
 #include <math.h>
 
-uint BVH::numNodes = 0;
-uint BVH::numLeaves = 0;
-uint BVH::rayBoxIntersections = 0;
-uint BVH::rayTriIntersections = 0;
+#undef near
+#undef far
+
+unsigned int BVH::numNodes = 0;
+unsigned int BVH::numLeaves = 0;
+unsigned int BVH::rayBoxIntersections = 0;
+unsigned int BVH::rayTriIntersections = 0;
 
 BVH::BVH() : MAX_BINS(10) {}
 
@@ -432,6 +435,7 @@ bool BVH::intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min,
         }
         
         splitPlane->intersect(planeInfo, ray);
+		delete splitPlane;
         if (planeInfo.t > t_max)    //only intersects left box
         {
             rayBoxIntersections++;
@@ -473,7 +477,6 @@ bool BVH::intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min,
             }
         }
         
-        delete splitPlane;
         
         if (hit && minHit.t < t_max)
         {
@@ -485,8 +488,6 @@ bool BVH::intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min,
         else
             return false;
     }
-    
-    delete splitPlane;
 }
 
 float BVH::calcSurfaceArea(Vector3 minC, Vector3 maxC)

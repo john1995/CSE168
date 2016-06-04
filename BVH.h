@@ -32,13 +32,13 @@ public:
     
     void drawBVH();
     
-    static uint numNodes, numLeaves, rayBoxIntersections, rayTriIntersections;
+    static unsigned int numNodes, numLeaves, rayBoxIntersections, rayTriIntersections;
 
 protected:
     Objects * m_objects;
     
     bbox* root;
-    const uint MAX_BINS;   //number of bins to place primitives into at each level.
+    const unsigned int MAX_BINS;   //number of bins to place primitives into at each level.
 };
 
 #endif // CSE168_BVH_H_INCLUDED

@@ -190,7 +190,7 @@ makeCornellScene()
     for (int i = 0; i < cornellBox->numTris(); ++i)
     {
         Material* m;
-        if (i < 4 || i >= 8)
+        if (i < 4)
         {
             m = white;
         }
@@ -202,6 +202,10 @@ makeCornellScene()
         {
             m = green;
         }
+		else
+		{
+			m = white;
+		}
         
         Triangle* t = new Triangle;
         t->setIndex(i);

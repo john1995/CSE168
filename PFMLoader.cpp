@@ -4,6 +4,10 @@
 // define this to 1 if you are running on a big-endian machine (e.g. PPC Macs)
 // #if WORDS_BIGENDIAN
 
+#ifdef _WIN32
+
+#endif
+
 namespace
 {
 

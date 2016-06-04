@@ -5,8 +5,11 @@
 #include <stdarg.h>
 #include "Console.h"
 
-#ifdef WIN32
+#ifdef _WIN32
+#define NOMINMAX
 #include <windows.h>
+#undef near
+#undef far
 //#include <wincon.h>
 
 // disable useless warnings
@@ -21,7 +24,7 @@ static char __internal_console_buffer__[8192] = {'\0'};
 #define TEXT_PINK "\033[1;35m"
 
 
-#ifdef WIN32
+#ifdef _WIN32
 static void cprintf(const char *s) {
   unsigned short attr = 0;
 	int code = 0, state = 0;
@@ -87,7 +90,7 @@ void warning(const char *fmt,...)
 	_vsnprintf(__internal_console_buffer__, 8191, fmt, msg);
 	va_end (msg);
 
-  cprintf(TEXT_PINK"warning: "TEXT_NORMAL);
+  cprintf(TEXT_PINK"warning: " TEXT_NORMAL);
   cprintf(__internal_console_buffer__);
 }
 
@@ -98,7 +101,7 @@ void error(const char *fmt,...)
 	_vsnprintf(__internal_console_buffer__, 8191, fmt, msg);
 	va_end (msg);
 
-  cprintf(TEXT_RED"error: "TEXT_NORMAL);
+  cprintf(TEXT_RED"error: " TEXT_NORMAL);
   cprintf(__internal_console_buffer__);
 }
 
@@ -109,7 +112,7 @@ void debug(const char *fmt,...)
 	_vsnprintf(__internal_console_buffer__, 8191, fmt, msg);
 	va_end (msg);
 
-  cprintf(TEXT_GREEN"debug: "TEXT_NORMAL);
+  cprintf(TEXT_GREEN"debug: " TEXT_NORMAL);
   cprintf(__internal_console_buffer__);
 }
 
@@ -120,7 +123,7 @@ void fatal(const char *fmt,...)
 	_vsnprintf(__internal_console_buffer__, 8191, fmt, msg);
 	va_end (msg);
 
-  cprintf(TEXT_RED"fatal error: "TEXT_NORMAL);
+  cprintf(TEXT_RED"fatal error: " TEXT_NORMAL);
   cprintf(__internal_console_buffer__);
   exit(-1);
 }
