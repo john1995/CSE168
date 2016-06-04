@@ -38,7 +38,7 @@ protected:
     BVH m_bvh;
     Lights m_lights;
     Photon_map *globalMap, *volumeMap, *causticMap;
-    const int MAX_PHOTONS = 100000;
+    const int MAX_PHOTONS = 1000000;
 };
 
 extern Scene * g_scene;

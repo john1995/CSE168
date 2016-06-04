@@ -44,10 +44,10 @@ void makeWineGlassScene()
     
     // create and place a point light source
     PointLight * light = new PointLight;
-    light->setPosition(Vector3(3.0,3.0,0.0));
+    light->setPosition(Vector3(1.0,7.0,0.0));
     
     light->setColor(Vector3(1, 1, 1));
-    light->setWattage(50);
+    light->setWattage(100);
     g_scene->addLight(light);
     
     //Plastic* material2 = new Plastic(new Lambert(0.8f),new Glass(Vector3(0.4f),Vector3(0.6f)));
@@ -59,7 +59,7 @@ void makeWineGlassScene()
     Material* wallMat = new Lambert(Vector3(1.0f, 0.0f, 0.0f));
 
     TriangleMesh * wineGlass = new TriangleMesh;
-    wineGlass->load("wine_glass.obj");
+    wineGlass->load("teapot.obj");
     
     // create all the triangles in the bunny mesh and add to the scene
     for (int i = 0; i < wineGlass->numTris(); ++i)
@@ -121,7 +121,7 @@ void makeWineGlassScene()
     g_scene->addObject(t1);
     
     //Sphere * sphere = new Sphere;
-    //sphere->setCenter(Vector3(1.0,5.0,3.0));
+    //sphere->setCenter(Vector3(1.0,7.0,0.0));
     //sphere->setRadius(.1);
     //sphere->setMaterial(tableMat);
     //g_scene->addObject(sphere);
@@ -150,9 +150,9 @@ makeCornellScene()
     PointLight * light = new PointLight;
     //light->setPosition(Vector3(2.5,7,-2));
     light->setPosition(Vector3(2.75,5.4,-2.75));
-
+    
     light->setColor(Vector3(1, 1, 1));
-    light->setWattage(100);
+    light->setWattage(50);
     g_scene->addLight(light);
     
     Material* white = new Lambert(Vector3(0.8));
@@ -161,6 +161,12 @@ makeCornellScene()
     /*TriangleMesh * cornell = new TriangleMesh;
     cornell->load("empty_cornell_box.obj");
     addMeshTrianglesToScene(cornell, material);*/
+    
+    //Sphere * sphere = new Sphere;
+    //sphere->setCenter(Vector3(2.75,5.4,-2.75));
+    //sphere->setRadius(.1);
+    //sphere->setMaterial(white);
+    //g_scene->addObject(sphere);
     
     TriangleMesh * cornellBox = new TriangleMesh;
     cornellBox->load("cornell_box.obj");
@@ -884,10 +890,10 @@ main(int argc, char*argv[])
     
     //create a scene
     //makeSponzaScene();
-    makeWineGlassScene();
+    makeCornellScene();
     //makeBunny1Scene();
     //makeTeapotScene();
-    //makeCornellScene();
+    //makeWineGlassScene();
     MiroWindow miro(&argc, argv);
 
     miro.mainLoop();
