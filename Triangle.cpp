@@ -64,12 +64,15 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
     
     result.t = dot(normal, a - r.o) / denom;
     
-    /* FIXES TRIANGLE INTERSECTION PROBLEM WHEN NOT WOUND CCW, BUT WILL RENDER TRIANGLES PAST MIRO BOUNDS */
     if (result.t < tMin || result.t > tMax)
+    {
         return false;
+    }
     
     //Assign hit location to HitInfo result
     result.P = r.o + result.t * r.d;
+    
+    //////////////////////BARYCENTRIC COORDINATES METHOD 1/////////////////////
     
     //Find smallest two components of triangle's normal vector
     int u, v;   //min indices
@@ -92,6 +95,22 @@ Triangle::intersect(HitInfo& result, const Ray& r,float tMin, float tMax)
     
     float beta = ((b[u] - a[u]) * (result.P[v] - a[v]) -
                   (b[v] - a[v]) * (result.P[u] - a[u])) / denominator;
+    
+    //std::cerr << "Alpha method 1: " << alpha << std::endl;
+    //std::cerr << "Beta method 1: " << beta << std::endl;
+    
+    ////////////////////BARYCENTRIC COORDINATES METHOD 2////////////////////////
+    /*Vector3 n_a = cross(c - b, result.P - b);
+    Vector3 n_b = cross(a - c, result.P - c);
+    Vector3 n = cross(b - a, c - a);
+    float denominator2 = n.length() * n.length();
+    //float tri_Area = 0.5f * cross(b - a, c - a).length();
+    
+    alpha = dot(n, n_a) / denominator2;
+    beta = dot(n, n_b) / denominator2;
+    
+    std::cerr << "Alpha method 2: " << alpha << std::endl;
+    std::cerr << "Beta method 2: " << beta << std::endl;*/
     
     if (alpha >= 0.0f && alpha <= 1.0f && beta >= 0.0f && beta <= 1.0f && alpha + beta <= 1.0f)
     {

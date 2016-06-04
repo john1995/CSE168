@@ -432,12 +432,12 @@ bool BVH::intersectNode(bbox* box, HitInfo& minHit, const Ray& ray, float t_min,
         }
         
         splitPlane->intersect(planeInfo, ray);
-        if (planeInfo.t > t_max)
+        if (planeInfo.t > t_max)    //only intersects left box
         {
             rayBoxIntersections++;
             return intersectNode(near, minHit, ray, t_min, t_max, depth + 1);
         }
-        else if (planeInfo.t < t_min)
+        else if (planeInfo.t < t_min)   //only intersects right box
         {
             rayBoxIntersections++;
             return intersectNode(far, minHit, ray, t_min, t_max, depth + 1);

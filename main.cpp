@@ -59,7 +59,7 @@ void makeWineGlassScene()
     Material* wallMat = new Lambert(Vector3(1.0f, 0.0f, 0.0f));
 
     TriangleMesh * wineGlass = new TriangleMesh;
-    wineGlass->load("teapot.obj");
+    wineGlass->load("wine_glass.obj");
     
     // create all the triangles in the bunny mesh and add to the scene
     for (int i = 0; i < wineGlass->numTris(); ++i)
@@ -105,20 +105,35 @@ void makeWineGlassScene()
     
     //Draw wall
     // create the wall triangle
-    TriangleMesh * wall = new TriangleMesh;
-    wall->createSingleTriangle();
-    wall->setV1(Vector3(-5, -2, 10));
-    wall->setV2(Vector3(-5, -2,  -10));
-    wall->setV3(Vector3(-5, 8, -10));
-    wall->setN1(Vector3(1, 0, 0));
-    wall->setN2(Vector3(1, 0, 0));
-    wall->setN3(Vector3(1, 0, 0));
+    TriangleMesh * wall1 = new TriangleMesh;
+    wall1->createSingleTriangle();
+    wall1->setV1(Vector3(-5, -2, 10));
+    wall1->setV2(Vector3(-5, -2,  -10));
+    wall1->setV3(Vector3(-5, 8, -10));
+    wall1->setN1(Vector3(1, 0, 0));
+    wall1->setN2(Vector3(1, 0, 0));
+    wall1->setN3(Vector3(1, 0, 0));
     
     Triangle* t1 = new Triangle;
     t1->setIndex(0);
-    t1->setMesh(wall);
+    t1->setMesh(wall1);
     t1->setMaterial(wallMat);
     g_scene->addObject(t1);
+    
+    TriangleMesh * wall2 = new TriangleMesh;
+    wall2->createSingleTriangle();
+    wall2->setV1(Vector3(-5, -2, 10));
+    wall2->setV2(Vector3(-5, 8,  -10));
+    wall2->setV3(Vector3(-5, 8, 10));
+    wall2->setN1(Vector3(1, 0, 0));
+    wall2->setN2(Vector3(1, 0, 0));
+    wall2->setN3(Vector3(1, 0, 0));
+    
+    Triangle* t3 = new Triangle;
+    t3->setIndex(0);
+    t3->setMesh(wall2);
+    t3->setMaterial(wallMat);
+    g_scene->addObject(t3);
     
     //Sphere * sphere = new Sphere;
     //sphere->setCenter(Vector3(1.0,7.0,0.0));
@@ -715,6 +730,54 @@ makeSpiralScene()
     g_scene->preCalc();
 }
 
+void
+makeTestScene()
+{
+    g_camera = new Camera;
+    g_scene = new Scene;
+    g_image = new Image;
+    
+    g_image->resize(512, 512);
+    
+    TriangleMesh * mesh;
+    
+    //Material* material = new Lambert(Vector3(0.8f));
+    Material* material = new Glass();
+    
+    // set up the camera
+    g_camera->setBGColor(Vector3(1.0f, 1.0f, 1.0f));
+    g_camera->setEye(Vector3(0, 2, 10));
+    g_camera->setLookAt(Vector3(0, 2, 0));
+    g_camera->setUp(Vector3(0, 1, 0));
+    g_camera->setFOV(45);
+    
+    // create and place a point light source
+    PointLight * light = new PointLight;
+    light->setPosition(Vector3(0, 15, 3));
+    light->setColor(Vector3(1, 1, 1));
+    light->setWattage(1000);
+    g_scene->addLight(light);
+    
+    // create Triangle with normal pointing away
+    mesh = new TriangleMesh;
+    mesh->createSingleTriangle();
+    mesh->setV1(Vector3(-3, 0, 0));
+    mesh->setV2(Vector3(3, 0,  0));
+    mesh->setV3(Vector3(0, 3, 0));
+    mesh->setN1(Vector3(0, 0, -1));
+    mesh->setN2(Vector3(0, 0, -1));
+    mesh->setN3(Vector3(0, 0, -1));
+    
+    Triangle* t = new Triangle;
+    t->setIndex(0);
+    t->setMesh(mesh);
+    t->setMaterial(material);
+    g_scene->addObject(t);
+    
+    // let objects do pre-calculations if needed
+    g_scene->preCalc();
+}
+
 
 /*void
 makeBunnyScene()
@@ -890,10 +953,10 @@ main(int argc, char*argv[])
     
     //create a scene
     //makeSponzaScene();
-    makeCornellScene();
+    //makeCornellScene();
     //makeBunny1Scene();
-    //makeTeapotScene();
-    //makeWineGlassScene();
+    //makeTestScene();
+    makeWineGlassScene();
     MiroWindow miro(&argc, argv);
 
     miro.mainLoop();

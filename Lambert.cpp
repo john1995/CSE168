@@ -50,7 +50,6 @@ Lambert::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         if (scene.trace(hi, shadow_ray, 0.001f, sqrt(falloff)))
         {
             // We are in shadow
-            //printf("Lambert in shadow!\n");
         }
         else
         {

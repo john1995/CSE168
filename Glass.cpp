@@ -11,12 +11,12 @@
 #include "Scene.h"
 
 Glass::Glass( Vector3 kd, Vector3 ks) :
-    k_d(kd), k_s(ks), indexOfRefraction(1.31), transparency(0.5f)
+    k_d(kd), k_s(ks), indexOfRefraction(1.32), transparency(0.5f)
 {
     k_s = Vector3(0.8f);
     glassColor.set(0.0, 0.2, 0.4);
 }
-Glass::Glass() : indexOfRefraction(1.31), transparency(0.5f)
+Glass::Glass() : indexOfRefraction(1.32), transparency(0.5f)
 {
     k_d = Vector3();
     k_s = Vector3(0.8f);
@@ -35,6 +35,7 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
     Vector3 reflected = Vector3(0.0f, 0.0f, 0.0f);
     Vector3 L = Vector3(0.0f, 0.0f, 0.0f);
     Vector3 reflectedColor, refractedColor;
+    bool TIR = false;       //flag to check for total internal reflection
     
     //scale down intensity of light in proportion to num of ray bounces
     //Vector3 attenuation = k_s * ( 1 / (ray.numBounces+1));
@@ -78,7 +79,7 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         //adjustedNorm.y << ", " << adjustedNorm.z << std::endl;
         
         /*********** REFLECTION CALCULATION ***************/
-        if (ray.numBounces < 10)
+        if (ray.numBounces < 5)
         {
             //trace from reflected vector now
             Ray reflect(ray.numBounces + 1);
@@ -86,7 +87,7 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             reflect.d = reflected.normalize();
             HitInfo hitReflect;
             
-            if (scene.trace(hitReflect, reflect, 0.1f))
+            if (scene.trace(hitReflect, reflect, 0.01f))
             {
                 //get color from object hit
                 //printf("Bounced reflected ray hit something!\n");
@@ -98,7 +99,7 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             {
                 //get color from background
                 //printf("bounced reflected ray didn't hit anything\n");
-                return Vector3(0.0f, 1.0f, 0.0f);
+                reflectedColor = bgColor;
             }
         }
         
@@ -107,10 +108,12 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
         //Vector3 wt = n1 * (ray.d - No * dot(ray.d, No)/n2 - No* sqrt(c));
         
         //are we inside or outside of surface? Assuming other medium is air for now, has IoR 1.0
-        float n1 = inside ? 1.0 : 1.0f;
-        float n2 = inside ? 1.0f : 1.0;
+        float n1 = inside ? indexOfRefraction : 1.0f;
+        float n2 = inside ? 1.0f : indexOfRefraction;
         
         float eta = n1 / n2;
+        
+        //float eta = indexOfRefraction;
         
         //find cosine of angle between ray and normal
         
@@ -144,7 +147,7 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             
             //find new vector direction direction
             /******/
-            if (ray.numBounces < 10)
+            if (ray.numBounces < 5)
             {
                 //printf("calculating light from bounced refracted ray\n");
                 //trace from reflected vector now
@@ -153,7 +156,7 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
                 refract.d = refractionDir;
                 HitInfo hitRefract;
                 
-                if (scene.trace(hitRefract, refract, 0.01f))
+                if (scene.trace(hitRefract, refract, 0.001f))
                 {
                     Vector3 color = pLight->color();
                     //printf("Bounced refracted ray hit something!\n");
@@ -164,31 +167,42 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
                 else
                 {
                     //printf("bounced refracted ray didn't hit anything\n");
-                    return Vector3(0.0f, 1.0f, 0.0f);
+                    refractedColor = bgColor;
                 }
             }
+            //else
+            //{
+                
+            //}
         }
         else
         {
-            //printf("Total internal reflection\n");
-            refractedColor = Vector3(1.0f, 1.0f, 1.0f);
+            TIR = true;
         }
-        
         /****************** FRESNEL CALCULATION ********************/
         //Find fraction of reflected light
-        float rho_perp = (n2 * cosi - n1 * cos_t) / (n2 * cosi + n1 * cos_t);
-        float rho_parallel = (n1 * cosi - n2 * cos_t) / (n1 * cosi + n2 * cos_t);
+        float rho_perp = pow((n1 * cosi - n2 * cos_t) / (n1 * cosi + n2 * cos_t), 2);
+        float rho_parallel = pow((n2 * cosi - n1 * cos_t) / (n2 * cosi + n1 * cos_t), 2);
         
-        float fresnelZero = 0.5f * (pow(rho_perp, 2) + pow(rho_parallel, 2));
-        float fracTransmitted = 1 - fresnelZero;
+        float reflectance;
         
-       //printf("Fraction reflected: %f\n", fresnelZero);
+        if (TIR)
+            reflectance = 1.0f;
+        else
+            reflectance = 0.5f * (rho_perp + rho_parallel);
+        
+        float transmittance = 1 - reflectance;
+        
+        //if (reflectance == 1)
+        //    printf("Fresnel shows TIR too\n");
+        
+        //printf("Fraction reflected: %f\n", fresnelZero);
         //printf("Fraction transmitted: %f\n", fracTransmitted);
         
         /**************** FINAL COLOR **********************/
         //printf("reflectedColor: %f, %f, %f\n", reflectedColor.x, reflectedColor.y, reflectedColor.z);
         //printf("refractedColor: %f, %f, %f\n", refractedColor.x, refractedColor.y, refractedColor.z);
-        L = reflectedColor * fresnelZero + refractedColor * fracTransmitted;
+        L = reflectedColor * reflectance + refractedColor * transmittance;
         //printf("glass color: %f, %f, %f\n", glassColor.x, glassColor.y, glassColor.z);
         //L = reflectedColor + refractedColor;
         //return L;
@@ -209,33 +223,10 @@ Glass::shade(Ray& ray, const HitInfo& hit, const Scene& scene) const
             //L.set(0.0f);
             //printf("In shadow!\n");
         }
-        else
-        {
-            //get color of light
-            //Vector3 color = pLight->color();
-            
-            //flip vector from eye so points from hit point back to eye
-            //L += k_s * color * pow(std::max(0.0f, dot(h, hit.N)), shinyExp);
-            //L += attenuation * color * pow(std::max(0.0f, dot(reflected, -ray.d)), shinyExp);
-            
-            //Specular Highlights
-            //This is separate from the reflection calculation because it
-            //needs to be dependent on just the shinyExp
-            //https://en.wikipedia.org/wiki/Specular_highlight
-            
-            //Specular calculation for ABSORBED light
-            //L += attenuation * pow(std::max(0.0f, dot(h, hit.N)), 50);
-            
-            //check entering or exiting and change n1/n2 n2/n1
-            //dot product ray.dot.normal
-            //Specular Refraction
-            //L += attenuation * color * pow(std::max(0.0f, dot(wt, -ray.d)), shinyExp);
-            //std::cout<<"Final Refraction vector = "<<(k_s * color * pow(std::max(0.0f,
-            //dot(wt,ray.d)), shinyExp)) << std::endl;
-        }
     }
     
     //printf("light from glass: %f, %f, %f\n", L.x, L.y, L.z);
+    //L = refractedColor;
     
     return L;
 }
