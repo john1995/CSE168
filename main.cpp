@@ -34,6 +34,12 @@ void makeWineGlassScene()
     g_image = new Image;
     
     g_image->resize(512, 512);
+
+	Matrix4x4 xform;
+
+	// bunny 7
+	xform.setIdentity();
+	xform *= translate(-2, 0, 2);
     
     // set up the camera
     g_camera->setBGColor(Vector3(0.0f, 0.0f, 0.2f));
@@ -59,7 +65,7 @@ void makeWineGlassScene()
     Material* wallMat = new Lambert(Vector3(1.0f, 0.0f, 0.0f));
 
     TriangleMesh * wineGlass = new TriangleMesh;
-    wineGlass->load("wine_glass.obj");
+    wineGlass->load("wine_glass.obj", xform);
     
     // create all the triangles in the bunny mesh and add to the scene
     for (int i = 0; i < wineGlass->numTris(); ++i)
@@ -164,7 +170,7 @@ makeCornellScene()
     // create and place a point light source
     PointLight * light = new PointLight;
     //light->setPosition(Vector3(2.5,7,-2));
-    light->setPosition(Vector3(2.75,5.4,-2.75));
+    light->setPosition(Vector3(2.75,5.1,-2.75));
     
     light->setColor(Vector3(1, 1, 1));
     light->setWattage(50);

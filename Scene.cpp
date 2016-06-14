@@ -4,13 +4,15 @@
 #include "Image.h"
 #include "Console.h"
 #include <random>
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
 #include "Lambert.h"
 Scene * g_scene = 0;
 
 
-std::default_random_engine generator;
-std::uniform_real_distribution<float> distribution(-1, 1);
-std::uniform_real_distribution<float> distribution2(0, 1);
+//std::default_random_engine generator;
+//std::uniform_real_distribution<float> distribution(-1, 1);
+//std::uniform_real_distribution<float> distribution2(0, 1);
 
 void
 Scene::openGL(Camera *cam)
@@ -79,8 +81,8 @@ Scene::raytraceImage(Camera *cam, Image *img)
     /********** FIRST PASS - Emit photons ****************/
     printf("Starting photon map construction.\n");
     emitPhotons();
-    globalMap->scale_photon_power(1.0f/((float)MAX_PHOTONS));
-    causticMap->scale_photon_power(1.0f/(float)MAX_PHOTONS);
+    //globalMap->scale_photon_power(1.0f/((float)MAX_PHOTONS));
+    //causticMap->scale_photon_power(1.0f/(float)MAX_PHOTONS);
 
     globalMap->balance();
     causticMap->balance();
@@ -163,9 +165,12 @@ void Scene::emitPhotons()
 {
     //create photon maps
     initPhotonMaps();
+
+	/* initialize random seed: */
+	srand(time(NULL));
     
-    float r1 = distribution2(generator);
-    float r2 = distribution2(generator);
+    //float r1 = distribution2(generator);
+    //float r2 = distribution2(generator);
     Ray photRay;
     
     // loop over all of the lights, emit from each.
@@ -193,20 +198,27 @@ void Scene::emitPhotons()
             phot.flag = 0.0f;
             do
             {
-                x = distribution(generator);
-                y = distribution(generator);
-                z = distribution(generator);
+                //x = distribution(generator);
+                //y = distribution(generator);
+                //z = distribution(generator);
+				x = 2 * ((float)rand() / RAND_MAX) - 1;
+				y = 2 * ((float)rand() / RAND_MAX) - 1;
+				z = 2 * ((float)rand() / RAND_MAX) - 1;
                 //std::cout<<x<<" "<<y<<" "<<z<< " "<<std::endl;
 
             } while((x*x + y*y + z*z)> 1.0f);
+
+			//printf("x: %f, y: %f, z: %f\n", x, y, z);
             
             //construct initial photon
             photRay.d = Vector3(x,y,z);
+			photRay.d.normalize();
             photRay.o = pLight->position();
             HitInfo photonHit;
-            phot.power[0] = pLight->wattage();
-            phot.power[1] = pLight->wattage();
-            phot.power[2] = pLight->wattage();
+			//FIGURE OUT WHERE TO DO SCALING
+            phot.power[0] = pLight->wattage() / MAX_PHOTONS;
+            phot.power[1] = pLight->wattage() / MAX_PHOTONS;
+            phot.power[2] = pLight->wattage() / MAX_PHOTONS;
 
             tracePhoton(photonHit, photRay, phot, 0);
             
@@ -232,25 +244,27 @@ bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsign
             globalMap->store(photon.power, pos, dir);
             causticMap->store(photon.power, pos, dir);
             //printf("store diffuse and specular\n");
+			//std::cerr << "Caustic #photons stored: " << causticMap->stored_photons << std::endl;
         }
         else if(dynamic_cast<const Lambert*>(photonHit.material)){
             //printf("store diffuse\n");
             globalMap->store(photon.power, pos, dir);
-            //std::cout<<"Lambert #photons stored: "<<globalMap->stored_photons<<std::endl;
+            //std::cerr<<"Lambert #photons stored: "<<globalMap->stored_photons<<std::endl;
         }
         
         //Russian roulette - Decide whether to reflect or to terminate
-        float dr =  photonHit.material->k_d.x;
-        float dg =  photonHit.material->k_d.y;
-        float db =  photonHit.material->k_d.z;
-        float sr =  photonHit.material->k_s.x;
-        float sg =  photonHit.material->k_s.y;
-        float sb =  photonHit.material->k_s.z;
+        float dr = photonHit.material->k_d.x;
+        float dg = photonHit.material->k_d.y;
+        float db = photonHit.material->k_d.z;
+        float sr = photonHit.material->k_s.x;
+        float sg = photonHit.material->k_s.y;
+        float sb = photonHit.material->k_s.z;
         
         float Pr = std::max(dr+sr, std::max(dg+sg, db+sb));
         float Pd = ( (dr+dg+db)/(dr+dg+db+sr+sg+sb) ) * Pr;
         float Ps = Pr - Pd;
-        float dec = distribution2(generator);
+        //float dec = distribution2(generator);
+		float randNum = (float)rand() / RAND_MAX;
         
         //std::cout<<"Dec: "<<dec<<std::endl;
         
@@ -262,13 +276,14 @@ bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsign
 
         
         //diffuse reflection
-        if(dec<Pd && numBounces < 10){
-            //printf("Diffuse reflection\n");
+        if(randNum < Pd && numBounces < 10)
+		{
+            //printf("Diffuse reflection, numBounces = %d\n", numBounces);
             Vector3 reflected = photRay.d - 2.0f * (dot(photonHit.N, photRay.d)) * photonHit.N;
             Ray difrefl(photonHit.P,reflected.normalize());
-            photon.power[0] = photon.power[0]*(dr/Pr);
-            photon.power[1] = photon.power[1]*(dg/Pr);
-            photon.power[2] = photon.power[2]*(db/Pr);
+            photon.power[0] = photon.power[0]*(dr/Pd);
+            photon.power[1] = photon.power[1]*(dg/Pd);
+            photon.power[2] = photon.power[2]*(db/Pd);
             //std::cout<<"Dg: "<<dg<<std::endl;
 
             //std::cout<<"Power: "<<photon.power[1]<<std::endl;
@@ -278,7 +293,8 @@ bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsign
             
         }
         //specular reflection
-        else if( dec < Ps + Pd && numBounces < 10){
+        else if(randNum < Ps + Pd && numBounces < 10)
+		{
             //printf("Specular reflection\n");
             Vector3 reflected = photRay.d - 2.0f * (dot(photonHit.N, photRay.d)) * photonHit.N;
             Ray difrefl(photonHit.P,reflected);
@@ -290,7 +306,8 @@ bool Scene::tracePhoton(HitInfo& photonHit, Ray& photRay, Photon& photon, unsign
             
         }
         //Absortion
-        else{
+        else
+		{
             //printf("absorption\n");
             return true;
             
@@ -307,9 +324,9 @@ Scene::trace(HitInfo& minHit, const Ray& ray, float tMin, float tMax) const
 
 bool Scene::initPhotonMaps()
 {
-    globalMap = new Photon_map(10000000);
+    globalMap = new Photon_map(1000000);
     //volumeMap = new Photon_map(1000);
-    causticMap = new Photon_map(10000000);
+    causticMap = new Photon_map(1000000);
     
     return true;
 }
